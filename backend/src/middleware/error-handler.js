@@ -24,6 +24,15 @@ export function errorHandler(logger) {
       status = 409;
       code = 'CONFLICT';
       message = 'The requested resource already exists.';
+    } else if (error.name === 'ValidationError') {
+      status = 400;
+      code = 'VALIDATION_ERROR';
+      const validationMessages = Object.values(error.errors ?? {})
+        .map((validationError) => `${validationError.path}: ${validationError.message}`)
+        .join('; ');
+      message = validationMessages
+        ? `The request could not be saved because ${validationMessages}`
+        : 'The request could not be saved because one or more values are invalid.';
     } else if (Number.isInteger(error.status) && error.status >= 400 && error.status < 500) {
       status = error.status;
       code = error.code ?? 'REQUEST_ERROR';

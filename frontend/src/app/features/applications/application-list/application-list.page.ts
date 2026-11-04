@@ -6,13 +6,12 @@ import { RouterLink } from '@angular/router';
 import { ApplicationService } from '../../../core/applications/application.service';
 import { ApplicantApplication } from '../../../core/applications/application.models';
 import { EmptyStateComponent } from '../../../shared/ui/empty-state.component';
-import { ErrorMessageComponent } from '../../../shared/ui/error-message.component';
 import { LoadingIndicatorComponent } from '../../../shared/ui/loading-indicator.component';
 import { StatusChipComponent } from '../../../shared/ui/status-chip.component';
 
 @Component({
   selector: 'app-application-list-page',
-  imports: [DatePipe, DecimalPipe, MatButtonModule, RouterLink, EmptyStateComponent, ErrorMessageComponent, LoadingIndicatorComponent, StatusChipComponent],
+  imports: [DatePipe, DecimalPipe, MatButtonModule, RouterLink, EmptyStateComponent, LoadingIndicatorComponent, StatusChipComponent],
   templateUrl: './application-list.page.html',
   styleUrl: './application-list.page.scss',
 })

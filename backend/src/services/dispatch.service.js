@@ -27,6 +27,17 @@ function safeDispatch(dispatch) {
   };
 }
 
+function safeApprovedApplication(application) {
+  return {
+    applicationNumber: application.applicationNumber,
+    dispatchReference: '',
+    dispatchDate: application.applicationDate,
+    dispatchStatus: 'pending',
+    createdAt: application.createdAt,
+    updatedAt: application.updatedAt,
+  };
+}
+
 export function createDispatchService({
   applicationModel = Application,
   dispatchModel = CardDispatch,
@@ -37,21 +48,36 @@ export function createDispatchService({
   return {
     async list({ page, limit, skip, status }) {
       const filter = status ? { dispatchStatus: status } : {};
-      const [items, total] = await Promise.all([
+      const [dispatches, dispatchTotal, approvedApplications] = await Promise.all([
         dispatchModel.find(filter)
           .select('application dispatchReference dispatchDate dispatchStatus createdAt updatedAt')
           .populate({ path: 'application', select: 'applicationNumber' })
           .sort({ dispatchDate: -1 })
-          .skip(skip)
-          .limit(limit)
           .lean(),
         dispatchModel.countDocuments(filter),
+        (!status || status === 'pending'
+          ? applicationModel.find({ status: 'approved' })
+            .select('applicationNumber applicationDate createdAt updatedAt')
+            .sort({ applicationDate: -1 })
+            .lean()
+          : Promise.resolve([])),
       ]);
-      return {
-        items: items.map((item) => safeDispatch({
+      const existingApplicationNumbers = new Set(
+        dispatches.map((item) => item.application?.applicationNumber),
+      );
+      const pendingApplications = approvedApplications
+        .filter((application) => !existingApplicationNumbers.has(application.applicationNumber))
+        .map(safeApprovedApplication);
+      const allItems = [
+        ...dispatches.map((item) => safeDispatch({
           ...item,
           applicationNumber: item.application?.applicationNumber,
         })),
+        ...pendingApplications,
+      ].sort((left, right) => new Date(right.dispatchDate).getTime() - new Date(left.dispatchDate).getTime());
+      const total = dispatchTotal + pendingApplications.length;
+      return {
+        items: allItems.slice(skip, skip + limit),
         page,
         limit,
         total,

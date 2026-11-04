@@ -8,21 +8,22 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { RouterLink } from '@angular/router';
 import { ApprovalService } from '../../core/approvals/approval.service';
+import { AuthService } from '../../core/auth/auth.service';
 import { ApprovalApplication } from '../../core/approvals/approval.models';
 import { ApprovalDecisionDialogComponent } from './approval-decision-dialog.component';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
-import { ErrorMessageComponent } from '../../shared/ui/error-message.component';
 import { LoadingIndicatorComponent } from '../../shared/ui/loading-indicator.component';
 import { StatusChipComponent } from '../../shared/ui/status-chip.component';
 
 @Component({
   selector: 'app-approval-dashboard-page',
-  imports: [DatePipe, DecimalPipe, MatButtonModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule, RouterLink, EmptyStateComponent, ErrorMessageComponent, LoadingIndicatorComponent, StatusChipComponent],
+  imports: [DatePipe, DecimalPipe, MatButtonModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule, RouterLink, EmptyStateComponent, LoadingIndicatorComponent, StatusChipComponent],
   templateUrl: './approval-dashboard.page.html',
   styleUrl: './approval-dashboard.page.scss',
 })
 export class ApprovalDashboardPage implements OnInit {
   private readonly service = inject(ApprovalService);
+  readonly authService = inject(AuthService);
   private readonly dialog = inject(MatDialog);
   readonly applications = signal<ApprovalApplication[]>([]);
   readonly status = signal('');
@@ -31,6 +32,8 @@ export class ApprovalDashboardPage implements OnInit {
   readonly totalPages = signal(0);
   readonly loading = signal(false);
   readonly errorMessage = signal('');
+  readonly isAdmin = this.authService.currentUser()?.role === 'ADMIN';
+  readonly dashboardRoute = this.isAdmin ? '/admin' : '/dashboard';
 
   ngOnInit(): void { this.load(); }
 
@@ -52,14 +55,35 @@ export class ApprovalDashboardPage implements OnInit {
   }
 
   decide(application: ApprovalApplication, decision: 'approved' | 'rejected'): void {
-    const dialogRef = this.dialog.open(ApprovalDecisionDialogComponent, { data: { decision }, width: '32rem' });
-    dialogRef.afterClosed().subscribe((reason: string | undefined) => {
-      if (!reason) return;
+    const dialogRef = this.dialog.open(ApprovalDecisionDialogComponent, {
+      data: { decision },
+      width: 'min(32rem, calc(100vw - 2rem))',
+    });
+    dialogRef.afterClosed().subscribe((result: { reason: string; creditLimit: number } | undefined) => {
+      if (!result) return;
       this.loading.set(true);
-      this.service.decide(application.applicationNumber, decision, reason).subscribe({
+      this.service.decide(application.applicationNumber, decision, result.reason).subscribe({
         next: () => this.load(),
         error: (error: unknown) => {
           this.errorMessage.set(error instanceof HttpErrorResponse ? error.error?.error?.message ?? 'Unable to record decision.' : 'Unable to record decision.');
+          this.loading.set(false);
+        },
+      });
+    });
+  }
+
+  manualReview(application: ApprovalApplication): void {
+    const dialogRef = this.dialog.open(ApprovalDecisionDialogComponent, {
+      data: { decision: 'manual_review' },
+      width: 'min(32rem, calc(100vw - 2rem))',
+    });
+    dialogRef.afterClosed().subscribe((result: { reason: string; creditLimit: number } | undefined) => {
+      if (!result) return;
+      this.loading.set(true);
+      this.service.submitManualReview(application.applicationNumber, result.creditLimit, result.reason).subscribe({
+        next: () => this.load(),
+        error: (error: unknown) => {
+          this.errorMessage.set(error instanceof HttpErrorResponse ? error.error?.error?.message ?? 'Unable to submit manual review.' : 'Unable to submit manual review.');
           this.loading.set(false);
         },
       });

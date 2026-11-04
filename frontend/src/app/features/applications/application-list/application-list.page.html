@@ -8,7 +8,6 @@
   </div>
 
   @if (errorMessage()) {
-    <app-error-message [message]="errorMessage()" (retry)="loadPage()" />
   } @else if (loading()) {
     <app-loading-indicator label="Loading your applications..." />
   } @else if (applications().length === 0) {

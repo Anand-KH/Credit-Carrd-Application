@@ -116,6 +116,52 @@ describe('backend API foundation', () => {
     expect(JSON.stringify(logger.error.mock.calls)).not.toContain('sensitive applicant details');
   });
 
+  it('returns a client error for database validation failures', () => {
+    const logger = { error: vi.fn() };
+    const response = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn(),
+      headersSent: false,
+    };
+    const validationError = new Error('schema details');
+    validationError.name = 'ValidationError';
+
+    errorHandler(logger)(validationError, { id: 'request-456' }, response, vi.fn());
+
+    expect(response.status).toHaveBeenCalledWith(400);
+    expect(response.json).toHaveBeenCalledWith({
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'The request could not be saved because one or more values are invalid.',
+        requestId: 'request-456',
+      },
+    });
+  });
+
+  it('includes safe validation field details for database validation failures', () => {
+    const logger = { error: vi.fn() };
+    const response = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn(),
+      headersSent: false,
+    };
+    const validationError = new Error();
+    validationError.name = 'ValidationError';
+    validationError.errors = {
+      status: { path: 'status', message: '`pending_admin_approval` is not a valid enum value.' },
+    };
+
+    errorHandler(logger)(validationError, { id: 'request-789' }, response, vi.fn());
+
+    expect(response.json).toHaveBeenCalledWith({
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'The request could not be saved because status: `pending_admin_approval` is not a valid enum value.',
+        requestId: 'request-789',
+      },
+    });
+  });
+
   it('allows configured origins and rejects unconfigured origins', async () => {
     const baseUrl = await startServer();
 

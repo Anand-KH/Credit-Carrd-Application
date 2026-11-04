@@ -139,6 +139,23 @@ describe('database models', () => {
     expect(audit.metadata).not.toHaveProperty('accessToken');
   });
 
+  it('accepts safe manual-review audit metadata', async () => {
+    const audit = new AuditLog({
+      actor: 'approver',
+      action: 'application_manual_review_submitted',
+      targetResource: 'APP-1003',
+      metadata: {
+        creditLimit: 600000,
+        reason: 'testing',
+        previousStatus: 'manual_review',
+        newStatus: 'pending_admin_approval',
+      },
+    });
+
+    await expect(audit.validate()).resolves.toBeUndefined();
+    expect(audit.metadata.creditLimit).toBe(600000);
+  });
+
   it('enforces unique application numbers and required status fields', () => {
     const first = new Application({
       applicationNumber: 'APP-1003',

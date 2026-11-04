@@ -1,5 +1,7 @@
 import { HttpError } from '../utils/http-error.js';
 
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
 function rejectUnknownFields(body, allowedFields) {
   const unknownFields = Object.keys(body).filter((field) => !allowedFields.has(field));
   if (unknownFields.length > 0) {
@@ -19,7 +21,7 @@ export function validateRegistration(request, _response, next) {
     if (
       name.length < 2
       || name.length > 120
-      || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+      || !emailPattern.test(email)
       || password.length < 12
       || password.length > 72
       || Buffer.byteLength(password, 'utf8') > 72
@@ -45,7 +47,7 @@ export function validateLogin(request, _response, next) {
     rejectUnknownFields(body, new Set(['email', 'password']));
     if (
       typeof body.email !== 'string'
-      || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email.trim())
+      || !emailPattern.test(body.email.trim())
       || typeof body.password !== 'string'
       || body.password.length === 0
       || body.password.length > 72

@@ -13,7 +13,6 @@ import { ApprovalApplication } from '../../core/approvals/approval.models';
 import { DispatchService } from '../../core/dispatch/dispatch.service';
 import { CardDispatch } from '../../core/dispatch/dispatch.models';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
-import { ErrorMessageComponent } from '../../shared/ui/error-message.component';
 import { LoadingIndicatorComponent } from '../../shared/ui/loading-indicator.component';
 import { StatusChipComponent } from '../../shared/ui/status-chip.component';
 
@@ -28,7 +27,6 @@ import { StatusChipComponent } from '../../shared/ui/status-chip.component';
     MatIconModule,
     RouterLink,
     EmptyStateComponent,
-    ErrorMessageComponent,
     LoadingIndicatorComponent,
     StatusChipComponent,
   ],
@@ -53,7 +51,7 @@ export class DashboardPage implements OnInit {
   ngOnInit(): void {
     const role = this.authService.currentUser()?.role;
     if (role === 'APPLICANT') this.loadApplicantDashboard();
-    else if (role === 'APPROVER' || role === 'ADMIN') this.loadStaffDashboard();
+    else if (role === 'APPROVER') this.loadStaffDashboard();
     else if (role === 'DISPATCH_OFFICER') this.loadDispatchDashboard();
     else this.loading.set(false);
   }

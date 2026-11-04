@@ -1,7 +1,6 @@
 @if (loading()) {
   <app-loading-indicator label="Loading dashboard..." />
 } @else if (errorMessage()) {
-  <app-error-message [message]="errorMessage()" (retry)="retry()" />
 } @else {
   @switch (authService.currentUser()?.role) {
     @case ('APPLICANT') {
@@ -31,7 +30,10 @@
       <ng-container *ngTemplateOutlet="staffDashboard; context: { title: 'Approver dashboard', eyebrow: 'Review operations', description: 'Review applications that require an approval decision.' }" />
     }
     @case ('ADMIN') {
-      <ng-container *ngTemplateOutlet="staffDashboard; context: { title: 'Administrator dashboard', eyebrow: 'Operational oversight', description: 'Monitor the approval queue and open individual applications for review.' }" />
+      <section class="dashboard">
+        <div class="page-heading"><div><p class="eyebrow">Administrator dashboard</p><h1>Operational oversight</h1><p>Review application reports and audit history.</p></div><a mat-flat-button color="primary" routerLink="/admin"><mat-icon>admin_panel_settings</mat-icon> Open reports</a></div>
+        <mat-card><app-empty-state icon="admin_panel_settings" title="Administrator tools" message="Use the reports dashboard to view application counts, filtered applications, and audit history."><a mat-stroked-button routerLink="/admin">Open administrator dashboard</a></app-empty-state></mat-card>
+      </section>
     }
     @case ('DISPATCH_OFFICER') {
       <section class="dashboard">

@@ -1,7 +1,7 @@
 export function createApprovalController(approvalService) {
   return {
     list: async (request, response) => {
-      const result = await approvalService.list(request.approvalQuery);
+      const result = await approvalService.list(request.approvalQuery, request.auth);
       response.status(200).json(result);
     },
     get: async (request, response) => {
@@ -10,6 +10,14 @@ export function createApprovalController(approvalService) {
     },
     decide: async (request, response) => {
       const application = await approvalService.decide(
+        request.params.applicationNumber,
+        request.auth,
+        request.body,
+      );
+      response.status(200).json({ application });
+    },
+    manualReview: async (request, response) => {
+      const application = await approvalService.submitManualReview(
         request.params.applicationNumber,
         request.auth,
         request.body,

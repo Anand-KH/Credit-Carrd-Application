@@ -5,6 +5,7 @@ export type ApplicationStatus =
   | 'approved'
   | 'rejected'
   | 'manual_review'
+  | 'pending_admin_approval'
   | 'dispatched';
 
 export interface ApplicantAddress {

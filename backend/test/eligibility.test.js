@@ -8,6 +8,10 @@ import { createApplicationService } from '../src/services/application.service.js
 const applicantId = new mongoose.Types.ObjectId();
 const fixedNow = new Date('2026-10-28T12:00:00.000Z');
 
+function fixedCreditScoreProvider(score) {
+  return { getCreditScore: async () => ({ score, provider: 'mock' }) };
+}
+
 function applicationModelWith(recentApplication = null) {
   return {
     findOne: (query) => ({
@@ -27,7 +31,7 @@ function applicationModelWith(recentApplication = null) {
 function evaluateWith({ score = 801, income = 200000, dateOfBirth = '2000-10-28' } = {}) {
   const service = createEligibilityService({
     applicationModel: applicationModelWith(),
-    creditScoreProvider: createMockCreditScoreProvider({ defaultScore: score }),
+    creditScoreProvider: fixedCreditScoreProvider(score),
     now: () => fixedNow,
   });
   return service.evaluate({
@@ -51,7 +55,7 @@ describe('eligibility and credit-decision services', () => {
         applicationDate: new Date(cutoff.getTime() + 1),
         status: 'approved',
       }),
-      creditScoreProvider: createMockCreditScoreProvider(),
+      creditScoreProvider: fixedCreditScoreProvider(801),
       now: () => fixedNow,
     });
 
@@ -69,7 +73,7 @@ describe('eligibility and credit-decision services', () => {
         applicationDate: new Date(cutoff.getTime() - 1),
         status: 'rejected',
       }),
-      creditScoreProvider: createMockCreditScoreProvider({ defaultScore: 801 }),
+      creditScoreProvider: fixedCreditScoreProvider(801),
       now: () => fixedNow,
     }).evaluate({
       applicantId,
@@ -106,7 +110,7 @@ describe('eligibility and credit-decision services', () => {
   it('flags the unusual configured limit for confirmation', async () => {
     const result = await createEligibilityService({
       applicationModel: applicationModelWith(),
-      creditScoreProvider: createMockCreditScoreProvider({ defaultScore: 801 }),
+      creditScoreProvider: fixedCreditScoreProvider(801),
       creditLimit300kTo500k: 900000,
       now: () => fixedNow,
     }).evaluate({
@@ -137,20 +141,26 @@ describe('eligibility and credit-decision services', () => {
       .rejects.toMatchObject({ code: 'APPLICANT_NOT_OLD_ENOUGH' });
   });
 
-  it('uses deterministic mock provider scenarios', async () => {
+  it('supports deterministic score generation when injected', async () => {
+    const scores = [800, 801];
     const provider = createMockCreditScoreProvider({
-      scores: { low: 800, passing: 801 },
+      scoreGenerator: () => scores.shift(),
     });
-    await expect(provider.getCreditScore({ scenario: 'low' })).resolves.toMatchObject({
-      score: 800,
-      provider: 'mock',
-      scenario: 'low',
+    await expect(provider.getCreditScore()).resolves.toMatchObject({ score: 800, provider: 'mock' });
+    await expect(provider.getCreditScore()).resolves.toMatchObject({ score: 801, provider: 'mock' });
+  });
+
+  it('generates scores within the configured inclusive range', async () => {
+    const calls = [];
+    const provider = createMockCreditScoreProvider({
+      scoreGenerator: (minimum, maximumExclusive) => {
+        calls.push([minimum, maximumExclusive]);
+        return minimum;
+      },
     });
-    await expect(provider.getCreditScore({ scenario: 'passing' })).resolves.toMatchObject({
-      score: 801,
-      provider: 'mock',
-      scenario: 'passing',
-    });
+
+    await expect(provider.getCreditScore()).resolves.toMatchObject({ score: 300 });
+    expect(calls).toEqual([[300, 901]]);
   });
 
   it('serializes concurrent submissions so a rejected decision blocks the next one', async () => {
@@ -200,7 +210,7 @@ describe('eligibility and credit-decision services', () => {
             }),
           }),
         },
-        creditScoreProvider: createMockCreditScoreProvider({ defaultScore: 800 }),
+        creditScoreProvider: fixedCreditScoreProvider(800),
         now: () => fixedNow,
       }),
     });

@@ -1,5 +1,6 @@
 .page { max-width: 80rem; margin: 0 auto; display: grid; gap: 1rem; }
 .heading { display: flex; justify-content: space-between; gap: 1rem; }
+.heading-actions { display: flex; flex-wrap: wrap; align-items: flex-start; gap: .5rem; }
 .heading h1 { margin: .25rem 0 .5rem; }.heading p:not(.eyebrow) { margin: 0; color: var(--mat-sys-on-surface-variant); }
 .eyebrow { margin: 0; color: var(--mat-sys-primary); font-size: .78rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
 .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: .75rem; }
@@ -8,4 +9,4 @@
 .chart { display: grid; gap: .7rem; }.bar-row { display: grid; grid-template-columns: 8rem 1fr 2rem; align-items: center; gap: .75rem; text-transform: capitalize; }.bar-track { height: .7rem; overflow: hidden; border-radius: 1rem; background: var(--mat-sys-surface-container-high); }.bar { height: 100%; border-radius: inherit; background: var(--mat-sys-primary); }
 .table-wrap { overflow-x: auto; } table { width: 100%; border-collapse: collapse; } th, td { padding: .8rem; border-bottom: 1px solid var(--mat-sys-outline-variant); text-align: left; }.pagination { display: flex; justify-content: center; align-items: center; gap: 1rem; padding-top: 1rem; }
 @media (max-width: 800px) { .filters { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 600px) { .heading { flex-direction: column; }.filters { grid-template-columns: 1fr; }.bar-row { grid-template-columns: 6rem 1fr 2rem; } }
+@media (max-width: 600px) { .heading { flex-direction: column; }.heading-actions { align-items: stretch; }.filters { grid-template-columns: 1fr; }.bar-row { grid-template-columns: 6rem 1fr 2rem; } }

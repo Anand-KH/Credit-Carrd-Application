@@ -1,7 +1,7 @@
 <section class="page">
   <div class="heading">
-    <div><p class="eyebrow">Approver portal</p><h1>Application review queue</h1></div>
-    <a mat-stroked-button routerLink="/dashboard">Back to dashboard</a>
+    <div><p class="eyebrow">{{ authService.currentUser()?.role === 'ADMIN' ? 'Administrator oversight' : 'Approver portal' }}</p><h1>Application review queue</h1></div>
+    <a mat-stroked-button [routerLink]="dashboardRoute">Back to dashboard</a>
   </div>
   <div class="filters">
     <mat-form-field appearance="outline">
@@ -12,14 +12,17 @@
       <mat-label>Status</mat-label>
       <mat-select [value]="status()" (valueChange)="setStatus($event)">
         <mat-option value="">All reviewable</mat-option>
-        <mat-option value="submitted">Submitted</mat-option>
-        <mat-option value="under_review">Under review</mat-option>
-        <mat-option value="manual_review">Manual review</mat-option>
+        @if (authService.currentUser()?.role === 'APPROVER') {
+          <mat-option value="submitted">Submitted</mat-option>
+          <mat-option value="under_review">Under review</mat-option>
+          <mat-option value="manual_review">Manual review</mat-option>
+        } @else {
+          <mat-option value="pending_admin_approval">Pending admin approval</mat-option>
+        }
       </mat-select>
     </mat-form-field>
     <button mat-flat-button color="primary" (click)="applySearch()">Search</button>
   </div>
-  @if (errorMessage()) { <app-error-message [message]="errorMessage()" (retry)="load()" /> }
   @if (loading()) { <app-loading-indicator label="Loading review queue..." /> }
   @if (!loading() && applications().length === 0) { <app-empty-state icon="task_alt" title="Queue is clear" message="No applications require review." /> }
   @if (applications().length > 0) {
@@ -35,8 +38,35 @@
               <td>{{ application.creditScoreResult ?? 'Not available' }}</td>
               <td>INR {{ application.income | number }}</td>
               <td>
-                <button mat-button color="primary" (click)="decide(application, 'approved')" [disabled]="application.eligibilityResult?.manualReviewRequired">Approve</button>
-                <button mat-button color="warn" (click)="decide(application, 'rejected')">Reject</button>
+                @if (authService.currentUser()?.role === 'ADMIN') {
+                  <div class="decision-actions">
+                    <div class="decision-buttons">
+                      <button mat-button color="primary" (click)="decide(application, 'approved')">Approve</button>
+                      <button mat-button color="warn" (click)="decide(application, 'rejected')">Reject</button>
+                    </div>
+                    <span class="approval-help">Final admin decision on the approver's manual-review recommendation.</span>
+                  </div>
+                } @else if (application.status === 'manual_review') {
+                  <div class="manual-review-action">
+                    <button mat-button color="primary" (click)="manualReview(application)">Recommend credit limit</button>
+                    <span class="approval-help">Required because annual income exceeds INR 500,000.</span>
+                  </div>
+                } @else {
+                  <div class="decision-actions">
+                    <div class="decision-buttons">
+                      <button
+                        mat-button
+                        color="primary"
+                        (click)="decide(application, 'approved')"
+                        [disabled]="application.eligibilityResult?.manualReviewRequired"
+                        [attr.aria-describedby]="application.eligibilityResult?.manualReviewRequired ? application.applicationNumber + '-approval-help' : null"
+                      >
+                        Approve
+                      </button>
+                      <button mat-button color="warn" (click)="decide(application, 'rejected')">Reject</button>
+                    </div>
+                  </div>
+                }
               </td>
             </tr>
           }

@@ -3,7 +3,6 @@ import { authGuard, guestGuard, roleGuard } from './core/auth/auth.guards';
 import { LoginPage } from './features/auth/login/login.page';
 import { RegisterPage } from './features/auth/register/register.page';
 import { DashboardPage } from './features/dashboard/dashboard.page';
-import { StaffPage } from './features/dashboard/staff.page';
 import { ForbiddenPage } from './features/forbidden/forbidden.page';
 import { ApplicationFormPage } from './features/applications/application-form/application-form.page';
 import { ApplicationListPage } from './features/applications/application-list/application-list.page';
@@ -43,7 +42,7 @@ export const routes: Routes = [
   },
   {
     path: 'staff',
-    component: StaffPage,
+    component: DashboardPage,
     canActivate: [authGuard, roleGuard],
     data: { roles: ['APPROVER', 'ADMIN', 'DISPATCH_OFFICER'] },
   },

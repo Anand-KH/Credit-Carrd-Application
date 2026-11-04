@@ -3,7 +3,6 @@
   @if (loading()) {
     <app-loading-indicator label="Loading application status..." />
   } @else if (errorMessage()) {
-    <app-error-message [message]="errorMessage()" [showRetry]="false" />
   } @else if (tracking(); as item) {
     <div class="heading">
       <div><p class="eyebrow">Application tracking</p><h1>{{ item.applicationNumber }}</h1><p>Submitted {{ item.applicationDate | date:'mediumDate' }}</p></div>

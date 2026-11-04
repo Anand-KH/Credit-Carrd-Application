@@ -1,6 +1,5 @@
 <section class="page">
-  <div class="heading"><div><p class="eyebrow">Administrator oversight</p><h1>Application reporting</h1><p>Monitor application volume and status without exposing applicant-sensitive data.</p></div><a mat-stroked-button routerLink="/admin/audit"><span>View audit history</span></a></div>
-  @if (errorMessage()) { <app-error-message [message]="errorMessage()" (retry)="load()" /> }
+  <div class="heading"><div><p class="eyebrow">Administrator oversight</p><h1>Application reporting</h1><p>Monitor application volume and status without exposing applicant-sensitive data.</p></div><div class="heading-actions"><a mat-stroked-button routerLink="/approvals">Review manual applications</a><a mat-stroked-button routerLink="/admin/audit"><span>View audit history</span></a></div></div>
   @if (counts(); as summary) {
     <div class="metric-grid">
       @for (status of statuses; track status) { <mat-card><mat-card-content><span>{{ status.replaceAll('_', ' ') }}</span><strong>{{ summary[status] }}</strong></mat-card-content></mat-card> }
@@ -20,7 +19,7 @@
       @if (loading()) { <app-loading-indicator label="Loading applications..." /> }
       @else if (applications().length === 0) { <app-empty-state icon="search_off" title="No applications found" message="Try adjusting the filters." /> }
       @else {
-        <div class="table-wrap"><table><thead><tr><th>Application</th><th>Date</th><th>Status</th><th>Income</th><th>Score</th></tr></thead><tbody>@for (item of applications(); track item.applicationNumber) { <tr><td>{{ item.applicationNumber }}</td><td>{{ item.applicationDate | date:'mediumDate' }}</td><td><app-status-chip [status]="item.status" /></td><td>INR {{ item.income | number }}</td><td>{{ item.creditScoreResult ?? 'Not available' }}</td></tr> }</tbody></table></div>
+        <div class="table-wrap"><table><thead><tr><th>Application</th><th>Date</th><th>Application status</th><th>Dispatch status</th><th>Income</th><th>Score</th></tr></thead><tbody>@for (item of applications(); track item.applicationNumber) { <tr><td>{{ item.applicationNumber }}</td><td>{{ item.applicationDate | date:'mediumDate' }}</td><td><app-status-chip [status]="item.status" /></td><td>{{ item.dispatchStatus?.replaceAll('_', ' ') ?? 'Not created' }}</td><td>INR {{ item.income | number }}</td><td>{{ item.creditScoreResult ?? 'Not available' }}</td></tr> }</tbody></table></div>
         <div class="pagination"><button mat-stroked-button type="button" (click)="previousPage()" [disabled]="page() === 1">Previous</button><span>Page {{ page() }} of {{ totalPages() }}</span><button mat-stroked-button type="button" (click)="nextPage()" [disabled]="page() >= totalPages()">Next</button></div>
       }
     </mat-card-content>

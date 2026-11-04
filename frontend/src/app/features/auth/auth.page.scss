@@ -46,10 +46,18 @@ button {
   color: #9c2520;
 }
 
+.form-success {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  background: #e7f7ef;
+  color: #176b59;
+}
+
 .field-error {
-  margin: -0.5rem 0 0.75rem;
+  margin: -0.25rem 0 0.25rem;
   color: #9c2520;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
 }
 
 .switch-link {

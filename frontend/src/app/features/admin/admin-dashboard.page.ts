@@ -11,13 +11,12 @@ import { RouterLink } from '@angular/router';
 import { ReportingService } from '../../core/reporting/reporting.service';
 import { ApplicationCounts, ApplicationReport } from '../../core/reporting/reporting.models';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
-import { ErrorMessageComponent } from '../../shared/ui/error-message.component';
 import { LoadingIndicatorComponent } from '../../shared/ui/loading-indicator.component';
 import { StatusChipComponent } from '../../shared/ui/status-chip.component';
 
 @Component({
   selector: 'app-admin-dashboard-page',
-  imports: [DatePipe, DecimalPipe, ReactiveFormsModule, MatButtonModule, MatCardModule, MatFormFieldModule, MatInputModule, MatSelectModule, RouterLink, EmptyStateComponent, ErrorMessageComponent, LoadingIndicatorComponent, StatusChipComponent],
+  imports: [DatePipe, DecimalPipe, ReactiveFormsModule, MatButtonModule, MatCardModule, MatFormFieldModule, MatInputModule, MatSelectModule, RouterLink, EmptyStateComponent, LoadingIndicatorComponent, StatusChipComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './admin-dashboard.page.html',
   styleUrl: './admin-dashboard.page.scss',

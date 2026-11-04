@@ -23,6 +23,8 @@ h2 { margin: 1.5rem 0 .75rem; color: #334b5d; font-size: 1.1rem; }
 .intro { margin: .75rem 0 1.5rem; color: #556776; }
 form { display: grid; gap: .5rem; }
 mat-form-field { width: 100%; }
+.field-group { min-width: 0; }
+.field-error { margin: -0.25rem 0 0.25rem; color: #9c2520; font-size: .8rem; }
 .two-column { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
 .form-error { padding: .75rem 1rem; border-radius: .5rem; background: #fff0ef; color: #9c2520; }
 .application-number { display: block; margin: 1rem 0 1.5rem; color: #176b59; font-size: 2rem; letter-spacing: .08em; }

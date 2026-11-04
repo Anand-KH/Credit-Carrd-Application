@@ -108,16 +108,17 @@ or a local replica set is required for full transaction testing.
 | `POST` | `/api/applications` | Applicant |
 | `GET` | `/api/applications/me` | Applicant |
 | `GET` | `/api/applications/:applicationNumber/status` | Owning applicant |
-| `GET` | `/api/approvals` | Approver/admin |
-| `POST` | `/api/approvals/:applicationNumber/decision` | Approver/admin |
-| `GET` | `/api/card-dispatch` | Dispatch officer/admin |
-| `PATCH` | `/api/card-dispatch` | Dispatch officer/admin |
+| `GET` | `/api/approvals` | Approver/admin (read-only for admin) |
+| `POST` | `/api/approvals/:applicationNumber/decision` | Approver |
+| `GET` | `/api/card-dispatch` | Dispatch officer |
+| `PATCH` | `/api/card-dispatch` | Dispatch officer |
 | `GET` | `/api/reports/application-counts` | Administrator |
 | `GET` | `/api/reports/applications` | Administrator |
 | `GET` | `/api/reports/audit-logs` | Administrator |
 
 Use fictional applicant details and PAN last-four test values only. The mock
-credit-score provider is deterministic for tests; no real bureau data is
+credit-score provider generates a random integer from 300 through 900 for each
+submission; tests inject deterministic providers, and no real bureau data is
 requested.
 
 ## Local end-to-end smoke test
@@ -234,8 +235,9 @@ does not calculate credit scores, approve applications, or set credit limits.
 
 ## Eligibility and credit-decision foundation
 
-Submission now runs a deterministic mock score provider behind a provider
-interface. Applicants must be strictly older than 18. An approved or rejected
+Submission now runs a random mock score provider behind a provider interface.
+Scores are generated uniformly from 300 through 900 inclusive. Applicants must
+be strictly older than 18. An approved or rejected
 application for the same applicant in the previous six months blocks a new
 submission. The applicant update is written first inside the same MongoDB
 transaction, which serializes concurrent submissions for that applicant and

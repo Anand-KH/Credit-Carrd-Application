@@ -8,13 +8,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { ApplicationTracking } from '../../core/applications/application.models';
 import { ApplicationService } from '../../core/applications/application.service';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
-import { ErrorMessageComponent } from '../../shared/ui/error-message.component';
 import { LoadingIndicatorComponent } from '../../shared/ui/loading-indicator.component';
 import { StatusChipComponent } from '../../shared/ui/status-chip.component';
 
 @Component({
   selector: 'app-application-tracking-page',
-  imports: [DatePipe, MatButtonModule, MatCardModule, MatIconModule, RouterLink, EmptyStateComponent, ErrorMessageComponent, LoadingIndicatorComponent, StatusChipComponent],
+  imports: [DatePipe, MatButtonModule, MatCardModule, MatIconModule, RouterLink, EmptyStateComponent, LoadingIndicatorComponent, StatusChipComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './application-tracking.page.html',
   styleUrl: './application-tracking.page.scss',

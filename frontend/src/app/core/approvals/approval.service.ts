@@ -28,4 +28,11 @@ export class ApprovalService {
       { decision, reason },
     );
   }
+
+  submitManualReview(applicationNumber: string, creditLimit: number, reason: string): Observable<{ application: ApprovalApplication }> {
+    return this.http.post<{ application: ApprovalApplication }>(
+      `${this.apiBaseUrl}/approvals/${encodeURIComponent(applicationNumber)}/manual-review`,
+      { creditLimit, reason },
+    );
+  }
 }

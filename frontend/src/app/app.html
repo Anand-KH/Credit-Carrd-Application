@@ -16,7 +16,7 @@
         <button mat-icon-button type="button" aria-label="Open navigation menu" (click)="sidenav.open()">
           <mat-icon>menu</mat-icon>
         </button>
-        <a class="brand" routerLink="/dashboard" aria-label="Credit card portal home">
+        <a class="brand" [routerLink]="homeRoute()" aria-label="Credit card portal home">
           <span class="brand-mark">C</span><span>CrediCard</span>
         </a>
         <span class="toolbar-spacer"></span>

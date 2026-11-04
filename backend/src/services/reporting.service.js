@@ -1,5 +1,6 @@
 import { Application } from '../models/application.model.js';
 import { AuditLog } from '../models/audit-log.model.js';
+import { CardDispatch } from '../models/card-dispatch.model.js';
 
 const applicationStatuses = ['submitted', 'under_review', 'approved', 'rejected', 'manual_review', 'dispatched'];
 
@@ -23,22 +24,25 @@ function safeApplication(application) {
     income: application.income,
     creditScoreResult: application.creditScoreResult,
     creditDecision: application.creditDecision,
+    dispatchStatus: application.dispatchStatus ?? null,
   };
 }
 
 function safeAudit(audit) {
+  const metadata = audit.metadata ?? {};
   return {
     actor: audit.actor,
     action: audit.action,
     targetResource: audit.targetResource,
     timestamp: audit.timestamp,
-    metadata: audit.metadata ?? {},
+    status: metadata.newStatus ?? metadata.dispatchStatus ?? metadata.decision ?? null,
   };
 }
 
 export function createReportingService({
   applicationModel = Application,
   auditLogModel = AuditLog,
+  dispatchModel = CardDispatch,
 } = {}) {
   return {
     async statusCounts() {
@@ -63,8 +67,22 @@ export function createReportingService({
           .lean(),
         applicationModel.countDocuments(filter),
       ]);
+      const applicationIds = items.map((item) => item._id).filter(Boolean);
+      const dispatches = applicationIds.length > 0
+        ? await dispatchModel.find({ application: { $in: applicationIds } })
+          .select('application dispatchStatus')
+          .lean()
+        : [];
+      const dispatchStatusByApplication = new Map(
+        dispatches.map((dispatch) => [dispatch.application.toString(), dispatch.dispatchStatus]),
+      );
       return {
-        items: items.map(safeApplication),
+        items: items.map((item) => safeApplication({
+          ...item,
+          dispatchStatus: item._id
+            ? dispatchStatusByApplication.get(item._id.toString()) ?? null
+            : null,
+        })),
         page: query.page,
         limit: query.limit,
         total,

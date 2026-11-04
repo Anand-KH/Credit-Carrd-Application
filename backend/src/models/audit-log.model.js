@@ -4,23 +4,36 @@ const forbiddenMetadataKeys = new Set([
   'password',
   'passwordHash',
   'token',
-  'accessToken',
+  'accesstoken',
   'jwt',
   'pan',
   'panNumber',
   'fullPan',
 ]);
 
-function hasForbiddenKey(value) {
+function hasForbiddenKey(value, visited = new WeakSet()) {
   if (!value || typeof value !== 'object') return false;
+  if (typeof value.toObject === 'function') {
+    return hasForbiddenKey(value.toObject({ depopulate: true }), visited);
+  }
+  if (!Array.isArray(value) && Object.getPrototypeOf(value) !== Object.prototype) {
+    return false;
+  }
+  if (visited.has(value)) return false;
+  visited.add(value);
   return Object.entries(value).some(([key, child]) => (
-    forbiddenMetadataKeys.has(key.toLowerCase()) || hasForbiddenKey(child)
+    forbiddenMetadataKeys.has(key.toLowerCase()) || hasForbiddenKey(child, visited)
   ));
 }
 
 const safeMetadataSchema = new mongoose.Schema({
   decision: String,
   reason: String,
+  creditLimit: {
+    type: Number,
+    min: 0,
+    max: 10000000,
+  },
   previousStatus: String,
   newStatus: String,
   dispatchReference: String,

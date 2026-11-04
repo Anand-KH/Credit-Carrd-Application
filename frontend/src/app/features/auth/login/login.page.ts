@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { AuthService } from '../../../core/auth/auth.service';
+import { EMAIL_PATTERN } from '../../../core/auth/validation-patterns';
 
 @Component({
   selector: 'app-login-page',
@@ -27,10 +28,17 @@ export class LoginPage {
 
   readonly submitting = signal(false);
   readonly errorMessage = signal('');
+  readonly registrationMessage = signal('');
   readonly form = this.formBuilder.nonNullable.group({
-    email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
+    email: ['', [Validators.required, Validators.pattern(EMAIL_PATTERN), Validators.maxLength(254)]],
     password: ['', [Validators.required, Validators.maxLength(72)]],
   });
+
+  constructor() {
+    if (this.activatedRoute.snapshot.queryParamMap.get('registered') === 'true') {
+      this.registrationMessage.set('Account created successfully. Please sign in.');
+    }
+  }
 
   submit(): void {
     this.errorMessage.set('');
@@ -45,7 +53,11 @@ export class LoginPage {
         const returnUrl = this.activatedRoute.snapshot.queryParamMap.get('returnUrl');
         const destination = returnUrl?.startsWith('/') && !returnUrl.startsWith('//')
           ? returnUrl
-          : user.role === 'APPLICANT' ? '/dashboard' : '/staff';
+          : user.role === 'APPLICANT'
+            ? '/dashboard'
+            : user.role === 'ADMIN'
+              ? '/admin'
+                : '/dashboard';
         void this.router.navigateByUrl(destination);
       },
       error: (error: unknown) => {

@@ -4,7 +4,7 @@ import { ApplicationStatusHistory } from '../models/application-status-history.m
 import { AuditLog } from '../models/audit-log.model.js';
 import { HttpError } from '../utils/http-error.js';
 
-const reviewableStatuses = ['submitted', 'under_review', 'manual_review'];
+const reviewableStatuses = ['submitted', 'under_review', 'manual_review', 'pending_admin_approval'];
 
 function safeApplication(application) {
   return {
@@ -20,8 +20,11 @@ function safeApplication(application) {
   };
 }
 
-function buildFilter({ status, search }) {
-  const filter = { status: status ?? { $in: reviewableStatuses } };
+function buildFilter({ status, search, role }) {
+  const allowedStatuses = role === 'ADMIN'
+    ? ['pending_admin_approval']
+    : ['submitted', 'under_review', 'manual_review'];
+  const filter = { status: status && allowedStatuses.includes(status) ? status : { $in: allowedStatuses } };
   if (search) {
     filter.applicationNumber = { $regex: search, $options: 'i' };
   }
@@ -45,8 +48,8 @@ export function createApprovalService({
       return safeApplication(application);
     },
 
-    async list({ page, limit, skip, status, search }) {
-      const filter = buildFilter({ status, search });
+    async list({ page, limit, skip, status, search }, actor = {}) {
+      const filter = buildFilter({ status, search, role: actor.role });
       const [items, total] = await Promise.all([
         applicationModel.find(filter)
           .select('applicationNumber applicationDate status income creditScoreResult creditLimitDecision eligibilityResult')
@@ -65,6 +68,31 @@ export function createApprovalService({
       };
     },
 
+    async submitManualReview(applicationNumber, actor, { creditLimit, reason }) {
+      const session = await sessionFactory();
+      try {
+        let result;
+        await session.withTransaction(async () => {
+          const current = await applicationModel.findOne({ applicationNumber: applicationNumber.toUpperCase() }).session(session);
+          if (!current || current.status !== 'manual_review') {
+            throw new HttpError(409, 'INVALID_STATUS_TRANSITION', 'Application is not awaiting manual credit-limit review.');
+          }
+          const updated = await applicationModel.findOneAndUpdate(
+            { _id: current._id, status: 'manual_review' },
+            { $set: { status: 'pending_admin_approval', creditLimitDecision: creditLimit } },
+            { new: true, runValidators: true, session },
+          );
+          if (!updated) throw new HttpError(409, 'DECISION_ALREADY_RECORDED', 'Manual review was already submitted.');
+          await statusHistoryModel.create([{ application: updated._id, previousStatus: current.status, newStatus: updated.status, actor: actor.userId, timestamp: new Date(), reason }], { session });
+          await auditLogModel.create([{ actor: actor.userId, action: 'application_manual_review_submitted', targetResource: updated.applicationNumber, timestamp: new Date(), metadata: { creditLimit, reason, previousStatus: current.status, newStatus: updated.status } }], { session });
+          result = safeApplication(updated);
+        });
+        return result;
+      } finally {
+        await session.endSession();
+      }
+    },
+
     async decide(applicationNumber, actor, { decision, reason }) {
       const session = await sessionFactory();
       try {
@@ -76,13 +104,16 @@ export function createApprovalService({
           if (!current) {
             throw new HttpError(404, 'APPLICATION_NOT_FOUND', 'Application was not found.');
           }
-          if (!reviewableStatuses.includes(current.status)) {
-            throw new HttpError(409, 'INVALID_STATUS_TRANSITION', 'Application is not in a reviewable status.');
-          }
+          const isAdminManualDecision = actor.role === 'ADMIN' && current.status === 'pending_admin_approval';
+          const isApproverDecision = (!actor.role || actor.role === 'APPROVER')
+            && ['submitted', 'under_review', 'manual_review'].includes(current.status);
           if (decision === 'approved' && current.creditScoreResult <= 800) {
             throw new HttpError(409, 'CREDIT_SCORE_NOT_ELIGIBLE', 'Applications require a credit score greater than 800.');
           }
-          if (decision === 'approved' && current.eligibilityResult?.manualReviewRequired) {
+          if (!isAdminManualDecision && !isApproverDecision) {
+            throw new HttpError(409, 'INVALID_STATUS_TRANSITION', 'Application is not in a reviewable status.');
+          }
+          if (decision === 'approved' && current.eligibilityResult?.manualReviewRequired && !isAdminManualDecision) {
             throw new HttpError(409, 'MANUAL_REVIEW_REQUIRED', 'Manual credit-limit review is required before approval.');
           }
 

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
-import { DatePipe, JsonPipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,12 +10,11 @@ import { RouterLink } from '@angular/router';
 import { ReportingService } from '../../core/reporting/reporting.service';
 import { AuditEntry } from '../../core/reporting/reporting.models';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
-import { ErrorMessageComponent } from '../../shared/ui/error-message.component';
 import { LoadingIndicatorComponent } from '../../shared/ui/loading-indicator.component';
 
 @Component({
   selector: 'app-audit-history-page',
-  imports: [DatePipe, JsonPipe, ReactiveFormsModule, MatButtonModule, MatCardModule, MatFormFieldModule, MatInputModule, RouterLink, EmptyStateComponent, ErrorMessageComponent, LoadingIndicatorComponent],
+  imports: [DatePipe, ReactiveFormsModule, MatButtonModule, MatCardModule, MatFormFieldModule, MatInputModule, RouterLink, EmptyStateComponent, LoadingIndicatorComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './audit-history.page.html',
   styleUrl: './audit-history.page.scss',

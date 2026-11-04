@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { AuthService } from '../../../core/auth/auth.service';
+import { EMAIL_PATTERN } from '../../../core/auth/validation-patterns';
 
 function passwordsMatch(control: AbstractControl): ValidationErrors | null {
   return control.get('password')?.value === control.get('confirmPassword')?.value
@@ -34,7 +35,7 @@ export class RegisterPage {
   readonly errorMessage = signal('');
   readonly form = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(120)]],
-    email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
+    email: ['', [Validators.required, Validators.pattern(EMAIL_PATTERN), Validators.maxLength(254)]],
     password: ['', [Validators.required, Validators.minLength(12), Validators.maxLength(72)]],
     confirmPassword: ['', Validators.required],
   }, { validators: passwordsMatch });
@@ -49,7 +50,7 @@ export class RegisterPage {
     const { name, email, password } = this.form.getRawValue();
     this.submitting.set(true);
     this.authService.register({ name, email, password }).subscribe({
-      next: () => void this.router.navigateByUrl('/dashboard'),
+      next: () => void this.router.navigateByUrl('/login?registered=true'),
       error: (error: unknown) => {
         this.errorMessage.set(this.getErrorMessage(error));
         this.submitting.set(false);

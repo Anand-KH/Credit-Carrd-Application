@@ -3,6 +3,7 @@ import { Applicant } from '../models/applicant.model.js';
 import { Application } from '../models/application.model.js';
 import { ApplicationStatusHistory } from '../models/application-status-history.model.js';
 import { createEligibilityService } from './eligibility.service.js';
+import { createMockCreditScoreProvider } from './credit-score.provider.js';
 import { HttpError } from '../utils/http-error.js';
 
 function generateApplicationNumber() {
@@ -41,7 +42,7 @@ export function createApplicationService({
   sessionFactory = () => mongoose.startSession(),
   eligibilityService = createEligibilityService({
     applicationModel,
-    creditScoreProvider: { getCreditScore: async () => ({ score: 801, provider: 'mock' }) },
+    creditScoreProvider: createMockCreditScoreProvider(),
   }),
 } = {}) {
   return {

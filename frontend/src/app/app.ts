@@ -38,6 +38,9 @@ export class App {
     const role = this.authService.currentUser()?.role;
     return this.navigationForRole(role);
   });
+  readonly homeRoute = computed(() => (
+    this.authService.currentUser()?.role === 'ADMIN' ? '/admin' : '/dashboard'
+  ));
 
   private navigationForRole(role: UserRole | undefined): NavigationItem[] {
     switch (role) {

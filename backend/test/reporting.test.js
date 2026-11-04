@@ -63,7 +63,10 @@ describe('administrator reporting', () => {
     find: () => chain(audits),
     countDocuments: async () => audits.length,
   };
-  const reportingService = createReportingService({ applicationModel, auditLogModel });
+  const dispatchModel = {
+    find: () => chain([]),
+  };
+  const reportingService = createReportingService({ applicationModel, auditLogModel, dispatchModel });
   const userModel = {
     findById: async (id) => ({
       _id: id,
@@ -135,7 +138,7 @@ describe('administrator reporting', () => {
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({
       total: 1,
-      items: [{ action: 'application_approved', targetResource: 'APP-1001' }],
+      items: [{ action: 'application_approved', targetResource: 'APP-1001', status: 'approved' }],
     });
   });
 

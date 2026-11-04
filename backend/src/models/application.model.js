@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const applicationStatuses = ['draft', 'submitted', 'under_review', 'approved', 'rejected', 'manual_review', 'dispatched'];
+const applicationStatuses = ['draft', 'submitted', 'under_review', 'approved', 'rejected', 'manual_review', 'pending_admin_approval', 'dispatched'];
 const creditDecisionLevels = ['approved', 'rejected', 'manual_review'];
 
 const applicationSchema = new mongoose.Schema({

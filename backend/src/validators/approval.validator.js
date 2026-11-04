@@ -1,7 +1,7 @@
 import { HttpError } from '../utils/http-error.js';
 
 const decisionValues = new Set(['approved', 'rejected']);
-const reviewableStatuses = new Set(['submitted', 'under_review', 'manual_review']);
+const reviewableStatuses = new Set(['submitted', 'under_review', 'manual_review', 'pending_admin_approval']);
 
 export function validateApprovalQuery(request, _response, next) {
   const page = Number.parseInt(request.query.page ?? '1', 10);
@@ -12,7 +12,7 @@ export function validateApprovalQuery(request, _response, next) {
     return next(new HttpError(400, 'VALIDATION_ERROR', 'Page must be at least 1 and limit must be between 1 and 50.'));
   }
   if (status && !reviewableStatuses.has(status)) {
-    return next(new HttpError(400, 'VALIDATION_ERROR', 'Status must be submitted, under_review, or manual_review.'));
+    return next(new HttpError(400, 'VALIDATION_ERROR', 'Status must be submitted, under_review, manual_review, or pending_admin_approval.'));
   }
   if (search && (search.length > 80 || /[^\w\-\s]/.test(search))) {
     return next(new HttpError(400, 'VALIDATION_ERROR', 'Search contains unsupported characters.'));
@@ -36,5 +36,17 @@ export function validateApprovalDecision(request, _response, next) {
     return next(new HttpError(400, 'VALIDATION_ERROR', 'A reason of 5 to 1000 characters is required.'));
   }
   request.body = { decision, reason: reason.trim() };
+  return next();
+}
+
+export function validateManualReview(request, _response, next) {
+  const { creditLimit, reason } = request.body;
+  if (!Number.isFinite(creditLimit) || creditLimit <= 0 || creditLimit > 10000000) {
+    return next(new HttpError(400, 'VALIDATION_ERROR', 'Credit limit must be between INR 1 and INR 10,000,000.'));
+  }
+  if (typeof reason !== 'string' || reason.trim().length < 5 || reason.trim().length > 1000) {
+    return next(new HttpError(400, 'VALIDATION_ERROR', 'A reason of 5 to 1000 characters is required.'));
+  }
+  request.body = { creditLimit, reason: reason.trim() };
   return next();
 }

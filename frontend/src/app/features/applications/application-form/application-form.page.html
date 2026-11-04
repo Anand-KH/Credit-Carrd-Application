@@ -22,83 +22,99 @@
     <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
       <h2>Applicant details</h2>
       <div class="two-column">
-        <mat-form-field appearance="outline">
-          <mat-label>Date of birth</mat-label>
-          <input matInput type="date" formControlName="dateOfBirth">
+        <div class="field-group">
+          <mat-form-field appearance="outline">
+            <mat-label>Date of birth</mat-label>
+            <input matInput type="date" formControlName="dateOfBirth">
+          </mat-form-field>
           @if (form.controls.dateOfBirth.touched && form.controls.dateOfBirth.hasError('required')) {
-            <mat-error>Date of birth is required.</mat-error>
+            <p class="field-error" role="alert">Date of birth is required.</p>
           }
-        </mat-form-field>
+        </div>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Gender</mat-label>
-          <mat-select formControlName="gender">
-            <mat-option value="male">Male</mat-option>
-            <mat-option value="female">Female</mat-option>
-            <mat-option value="other">Other</mat-option>
-            <mat-option value="prefer_not_to_say">Prefer not to say</mat-option>
-          </mat-select>
+        <div class="field-group">
+          <mat-form-field appearance="outline">
+            <mat-label>Gender</mat-label>
+            <mat-select formControlName="gender">
+              <mat-option value="male">Male</mat-option>
+              <mat-option value="female">Female</mat-option>
+              <mat-option value="other">Other</mat-option>
+              <mat-option value="prefer_not_to_say">Prefer not to say</mat-option>
+            </mat-select>
+          </mat-form-field>
           @if (form.controls.gender.touched && form.controls.gender.hasError('required')) {
-            <mat-error>Gender is required.</mat-error>
+            <p class="field-error" role="alert">Gender is required.</p>
           }
-        </mat-form-field>
+        </div>
       </div>
 
       <div class="two-column">
-        <mat-form-field appearance="outline">
-          <mat-label>Phone number</mat-label>
-          <input matInput type="tel" formControlName="phone" autocomplete="tel">
+        <div class="field-group">
+          <mat-form-field appearance="outline">
+            <mat-label>Phone number</mat-label>
+            <input matInput type="tel" formControlName="phone" autocomplete="tel">
+          </mat-form-field>
           @if (form.controls.phone.touched && form.controls.phone.invalid) {
-            <mat-error>Enter a valid phone number.</mat-error>
+            <p class="field-error" role="alert">Enter a valid phone number.</p>
           }
-        </mat-form-field>
+        </div>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Annual income (INR)</mat-label>
-          <input matInput type="number" formControlName="annualIncome" min="0">
+        <div class="field-group">
+          <mat-form-field appearance="outline">
+            <mat-label>Annual income (INR)</mat-label>
+            <input matInput type="number" formControlName="annualIncome" min="0">
+          </mat-form-field>
           @if (form.controls.annualIncome.touched && form.controls.annualIncome.invalid) {
-            <mat-error>Enter a non-negative annual income.</mat-error>
+            <p class="field-error" role="alert">Enter a non-negative annual income.</p>
           }
-        </mat-form-field>
+        </div>
       </div>
 
       <div formGroupName="address">
         <h2>Address</h2>
-        <mat-form-field appearance="outline">
-          <mat-label>Address line 1</mat-label>
-          <input matInput formControlName="line1">
+        <div class="field-group">
+          <mat-form-field appearance="outline">
+            <mat-label>Address line 1</mat-label>
+            <input matInput formControlName="line1">
+          </mat-form-field>
           @if (form.controls.address.controls.line1.touched && form.controls.address.controls.line1.invalid) {
-            <mat-error>Address line 1 is required.</mat-error>
+            <p class="field-error" role="alert">Address line 1 is required.</p>
           }
-        </mat-form-field>
+        </div>
         <mat-form-field appearance="outline">
           <mat-label>Address line 2</mat-label>
           <input matInput formControlName="line2">
         </mat-form-field>
         <div class="two-column">
-          <mat-form-field appearance="outline">
-            <mat-label>City</mat-label>
-            <input matInput formControlName="city">
+          <div class="field-group">
+            <mat-form-field appearance="outline">
+              <mat-label>City</mat-label>
+              <input matInput formControlName="city">
+            </mat-form-field>
             @if (form.controls.address.controls.city.touched && form.controls.address.controls.city.invalid) {
-              <mat-error>City is required.</mat-error>
+              <p class="field-error" role="alert">City is required.</p>
             }
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>State</mat-label>
-            <input matInput formControlName="state">
+          </div>
+          <div class="field-group">
+            <mat-form-field appearance="outline">
+              <mat-label>State</mat-label>
+              <input matInput formControlName="state">
+            </mat-form-field>
             @if (form.controls.address.controls.state.touched && form.controls.address.controls.state.invalid) {
-              <mat-error>State is required.</mat-error>
+              <p class="field-error" role="alert">State is required.</p>
             }
-          </mat-form-field>
+          </div>
         </div>
         <div class="two-column">
-          <mat-form-field appearance="outline">
-            <mat-label>Postal code</mat-label>
-            <input matInput formControlName="postalCode">
+          <div class="field-group">
+            <mat-form-field appearance="outline">
+              <mat-label>Postal code</mat-label>
+              <input matInput formControlName="postalCode">
+            </mat-form-field>
             @if (form.controls.address.controls.postalCode.touched && form.controls.address.controls.postalCode.invalid) {
-              <mat-error>Postal code is required.</mat-error>
+              <p class="field-error" role="alert">Postal code is required.</p>
             }
-          </mat-form-field>
+          </div>
           <mat-form-field appearance="outline">
             <mat-label>Country</mat-label>
             <input matInput formControlName="country">
@@ -108,26 +124,30 @@
 
       <h2>Financial details</h2>
       <div class="two-column">
-        <mat-form-field appearance="outline">
-          <mat-label>Employment type</mat-label>
-          <mat-select formControlName="employmentType">
-            <mat-option value="salaried">Salaried</mat-option>
-            <mat-option value="self_employed">Self-employed</mat-option>
-            <mat-option value="business_owner">Business owner</mat-option>
-            <mat-option value="retired">Retired</mat-option>
-          </mat-select>
+        <div class="field-group">
+          <mat-form-field appearance="outline">
+            <mat-label>Employment type</mat-label>
+            <mat-select formControlName="employmentType">
+              <mat-option value="salaried">Salaried</mat-option>
+              <mat-option value="self_employed">Self-employed</mat-option>
+              <mat-option value="business_owner">Business owner</mat-option>
+              <mat-option value="retired">Retired</mat-option>
+            </mat-select>
+          </mat-form-field>
           @if (form.controls.employmentType.touched && form.controls.employmentType.hasError('required')) {
-            <mat-error>Employment type is required.</mat-error>
+            <p class="field-error" role="alert">Employment type is required.</p>
           }
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>PAN test input (last 4 only)</mat-label>
-          <input matInput formControlName="panLast4" maxlength="4">
-          <mat-hint>Use fictional data such as AB12.</mat-hint>
+        </div>
+        <div class="field-group">
+          <mat-form-field appearance="outline">
+            <mat-label>PAN test input (last 4 only)</mat-label>
+            <input matInput formControlName="panLast4" maxlength="4">
+            <mat-hint>Use fictional data such as AB12.</mat-hint>
+          </mat-form-field>
           @if (form.controls.panLast4.touched && form.controls.panLast4.invalid) {
-            <mat-error>Enter exactly four alphanumeric characters.</mat-error>
+            <p class="field-error" role="alert">Enter exactly four alphanumeric characters.</p>
           }
-        </mat-form-field>
+        </div>
       </div>
 
       <button mat-flat-button type="submit" [disabled]="submitting()">

@@ -7,6 +7,7 @@ export interface ApplicationReport {
   income: number;
   creditScoreResult?: number;
   creditDecision?: string | null;
+  dispatchStatus?: 'pending' | 'in_transit' | 'delivered' | 'failed' | null;
 }
 
 export interface ApplicationCounts {
@@ -31,7 +32,7 @@ export interface AuditEntry {
   action: string;
   targetResource: string;
   timestamp: string;
-  metadata: Record<string, unknown>;
+  status: string | null;
 }
 
 export interface AuditPage {
