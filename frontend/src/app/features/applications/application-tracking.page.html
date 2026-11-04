@@ -1,0 +1,27 @@
+<section class="page">
+  <a mat-button routerLink="/applications"><mat-icon>arrow_back</mat-icon> Back to applications</a>
+  @if (loading()) {
+    <app-loading-indicator label="Loading application status..." />
+  } @else if (errorMessage()) {
+    <app-error-message [message]="errorMessage()" [showRetry]="false" />
+  } @else if (tracking(); as item) {
+    <div class="heading">
+      <div><p class="eyebrow">Application tracking</p><h1>{{ item.applicationNumber }}</h1><p>Submitted {{ item.applicationDate | date:'mediumDate' }}</p></div>
+      <app-status-chip [status]="item.status" />
+    </div>
+    <mat-card>
+      <mat-card-header><mat-card-title>Status timeline</mat-card-title></mat-card-header>
+      <mat-card-content>
+        @if (item.timeline.length === 0) {
+          <app-empty-state icon="timeline" title="No status updates" message="Status updates will appear here." />
+        } @else {
+          <ol class="timeline" aria-label="Application status timeline">
+            @for (event of item.timeline; track event.timestamp + event.status) {
+              <li><span class="marker" aria-hidden="true"><mat-icon>check</mat-icon></span><div><strong>{{ event.status.replaceAll('_', ' ') }}</strong><time>{{ event.timestamp | date:'medium' }}</time>@if (event.reason) { <p>{{ event.reason }}</p> }</div></li>
+            }
+          </ol>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+</section>

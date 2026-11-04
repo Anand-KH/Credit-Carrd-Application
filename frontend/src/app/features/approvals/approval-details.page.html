@@ -1,0 +1,16 @@
+<section class="page">
+  <a mat-button routerLink="/approvals">Back to queue</a>
+  @if (errorMessage()) { <p class="error">{{ errorMessage() }}</p> }
+  @if (application(); as item) {
+    <h1>{{ item.applicationNumber }}</h1>
+    <dl>
+      <dt>Status</dt><dd>{{ item.status }}</dd>
+      <dt>Application date</dt><dd>{{ item.applicationDate | date:'medium' }}</dd>
+      <dt>Annual income</dt><dd>INR {{ item.income | number }}</dd>
+      <dt>Credit score</dt><dd>{{ item.creditScoreResult ?? 'Not available' }}</dd>
+      <dt>Credit limit</dt><dd>{{ item.creditLimitDecision ? ('INR ' + (item.creditLimitDecision | number)) : 'Manual review required' }}</dd>
+      <dt>Age eligible</dt><dd>{{ item.eligibilityResult?.ageQualified ? 'Yes' : 'No' }}</dd>
+      <dt>Score eligible</dt><dd>{{ item.eligibilityResult?.scoreQualified ? 'Yes' : 'No' }}</dd>
+    </dl>
+  }
+</section>

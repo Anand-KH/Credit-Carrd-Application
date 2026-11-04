@@ -1,0 +1,25 @@
+:host { display: block; min-height: 100vh; background: var(--mat-sys-surface-container-low); }
+.shell { min-height: 100vh; background: transparent; }
+.topbar { position: sticky; z-index: 2; top: 0; gap: .75rem; border-bottom: 1px solid var(--mat-sys-outline-variant); background: var(--mat-sys-surface); }
+.brand { display: flex; align-items: center; gap: .65rem; color: var(--mat-sys-on-surface); font-size: 1.1rem; font-weight: 750; text-decoration: none; }
+
+.brand-mark {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 0.6rem;
+  background: var(--mat-sys-primary);
+  color: #fff;
+}
+
+.drawer-brand { display: flex; align-items: center; gap: .75rem; padding: 1rem 1.25rem; }
+.drawer-brand .brand-mark { flex: 0 0 auto; }
+mat-sidenav { width: min(18rem, 85vw); }
+.active-link { background: var(--mat-sys-secondary-container); }
+.toolbar-spacer { flex: 1; }
+.user-menu-trigger { max-width: 14rem; }
+.menu-user { max-width: 17rem; overflow: hidden; text-overflow: ellipsis; }
+.content, .public-content { padding: clamp(1rem, 3vw, 2.5rem); }
+.public-content { min-height: 100vh; }
+.public-header { display: flex; align-items: center; padding: 1rem clamp(1rem, 5vw, 4rem); border-bottom: 1px solid var(--mat-sys-outline-variant); background: var(--mat-sys-surface); }

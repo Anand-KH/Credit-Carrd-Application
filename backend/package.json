@@ -1,0 +1,26 @@
+{
+  "name": "credit-card-application-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "build": "node --check src/app.js && node --check src/server.js && node --check src/config/env.js && node --check src/controllers/health.controller.js && node --check src/controllers/auth.controller.js && node --check src/controllers/application.controller.js && node --check src/controllers/approval.controller.js && node --check src/controllers/dispatch.controller.js && node --check src/controllers/reporting.controller.js && node --check src/routes/health.routes.js && node --check src/routes/auth.routes.js && node --check src/routes/application.routes.js && node --check src/routes/approval.routes.js && node --check src/routes/dispatch.routes.js && node --check src/routes/reporting.routes.js && node --check src/services/database.service.js && node --check src/services/auth.service.js && node --check src/services/application.service.js && node --check src/services/credit-score.provider.js && node --check src/services/eligibility.service.js && node --check src/services/approval.service.js && node --check src/services/dispatch.service.js && node --check src/services/reporting.service.js && node --check src/middleware/cors.js && node --check src/middleware/error-handler.js && node --check src/middleware/not-found.js && node --check src/middleware/request-context.js && node --check src/middleware/request-logger.js && node --check src/middleware/validate-json-body.js && node --check src/middleware/authenticate.js && node --check src/middleware/authorize-roles.js && node --check src/middleware/security.js && node --check src/models/user.model.js && node --check src/utils/date.js && node --check src/utils/http-error.js && node --check src/utils/logger.js && node --check src/validators/request.validator.js && node --check src/validators/auth.validator.js && node --check src/validators/application.validator.js && node --check src/validators/approval.validator.js && node --check src/validators/dispatch.validator.js && node --check src/validators/reporting.validator.js && node --check test/app.test.js && node --check test/auth.test.js && node --check test/models.test.js && node --check test/application.test.js && node --check test/eligibility.test.js && node --check test/approval.test.js && node --check test/tracking-dispatch.test.js && node --check test/reporting.test.js",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^18.0.9",
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.11.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.13.0",
+    "globals": "^16.5.0",
+    "vitest": "^4.1.12"
+  }
+}

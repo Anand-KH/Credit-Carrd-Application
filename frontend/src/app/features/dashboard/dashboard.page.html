@@ -1,0 +1,60 @@
+@if (loading()) {
+  <app-loading-indicator label="Loading dashboard..." />
+} @else if (errorMessage()) {
+  <app-error-message [message]="errorMessage()" (retry)="retry()" />
+} @else {
+  @switch (authService.currentUser()?.role) {
+    @case ('APPLICANT') {
+      <section class="dashboard">
+        <div class="page-heading">
+          <div><p class="eyebrow">Applicant dashboard</p><h1>Welcome back, {{ authService.currentUser()?.name }}</h1><p>Track your credit-card applications and submit a new one.</p></div>
+          <a mat-flat-button color="primary" routerLink="/applications/new"><mat-icon>add</mat-icon> New application</a>
+        </div>
+        <div class="metric-grid">
+          <mat-card><mat-card-content><mat-icon aria-hidden="true">description</mat-icon><span>My applications</span><strong>{{ totalApplications() }}</strong></mat-card-content></mat-card>
+        </div>
+        @if (applicantApplications().length === 0) {
+          <mat-card><app-empty-state icon="description" title="No applications yet" message="Start a fictional application when you are ready."><a mat-stroked-button routerLink="/applications/new">Start application</a></app-empty-state></mat-card>
+        } @else {
+          <mat-card>
+            <mat-card-header><mat-card-title>Recent applications</mat-card-title><a mat-button routerLink="/applications">View all</a></mat-card-header>
+            <mat-card-content><div class="application-list">
+              @for (application of applicantApplications(); track application.applicationNumber) {
+                <div class="application-row"><div><strong>{{ application.applicationNumber }}</strong><small>{{ application.applicationDate | date:'mediumDate' }} · INR {{ application.income | number }}</small></div><app-status-chip [status]="application.status" /></div>
+              }
+            </div></mat-card-content>
+          </mat-card>
+        }
+      </section>
+    }
+    @case ('APPROVER') {
+      <ng-container *ngTemplateOutlet="staffDashboard; context: { title: 'Approver dashboard', eyebrow: 'Review operations', description: 'Review applications that require an approval decision.' }" />
+    }
+    @case ('ADMIN') {
+      <ng-container *ngTemplateOutlet="staffDashboard; context: { title: 'Administrator dashboard', eyebrow: 'Operational oversight', description: 'Monitor the approval queue and open individual applications for review.' }" />
+    }
+    @case ('DISPATCH_OFFICER') {
+      <section class="dashboard">
+        <div class="page-heading"><div><p class="eyebrow">Dispatch dashboard</p><h1>Card dispatch operations</h1><p>Manage approved card deliveries.</p></div><a mat-flat-button color="primary" routerLink="/dispatch"><mat-icon>local_shipping</mat-icon> Open dispatch queue</a></div>
+        @if (dispatchQueue().length === 0) { <mat-card><app-empty-state icon="local_shipping" title="No dispatch records available" message="Approved applications will appear here when dispatch is created." /></mat-card> }
+        @else { <mat-card><mat-card-header><mat-card-title>Recent dispatches</mat-card-title><a mat-button routerLink="/dispatch">View queue</a></mat-card-header><mat-card-content><div class="application-list">@for (dispatch of dispatchQueue(); track dispatch.dispatchReference) { <div class="application-row"><div><strong>{{ dispatch.applicationNumber }}</strong><small>{{ dispatch.dispatchReference }} · {{ dispatch.dispatchDate | date:'mediumDate' }}</small></div><app-status-chip [status]="dispatch.dispatchStatus" /></div>}</div></mat-card-content></mat-card> }
+      </section>
+    }
+  }
+}
+
+<ng-template #staffDashboard let-title="title" let-eyebrow="eyebrow" let-description="description">
+  <section class="dashboard">
+    <div class="page-heading"><div><p class="eyebrow">{{ eyebrow }}</p><h1>{{ title }}</h1><p>{{ description }}</p></div><a mat-flat-button color="primary" routerLink="/approvals"><mat-icon>fact_check</mat-icon> Open queue</a></div>
+    <div class="metric-grid"><mat-card><mat-card-content><mat-icon aria-hidden="true">pending_actions</mat-icon><span>Reviewable applications</span><strong>{{ totalReviewable() }}</strong></mat-card-content></mat-card></div>
+    @if (reviewQueue().length === 0) {
+      <mat-card><app-empty-state icon="task_alt" title="Queue is clear" message="The backend returned no applications requiring review." /></mat-card>
+    } @else {
+      <mat-card><mat-card-header><mat-card-title>Recent review queue</mat-card-title><a mat-button routerLink="/approvals">View queue</a></mat-card-header><mat-card-content><div class="application-list">
+        @for (application of reviewQueue(); track application.applicationNumber) {
+          <div class="application-row"><div><a [routerLink]="['/approvals', application.applicationNumber]"><strong>{{ application.applicationNumber }}</strong></a><small>{{ application.applicationDate | date:'mediumDate' }} · Score {{ application.creditScoreResult ?? 'Not available' }}</small></div><app-status-chip [status]="application.status" /></div>
+        }
+      </div></mat-card-content></mat-card>
+    }
+  </section>
+</ng-template>

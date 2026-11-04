@@ -1,0 +1,48 @@
+<section class="page">
+  <div class="heading">
+    <div><p class="eyebrow">Approver portal</p><h1>Application review queue</h1></div>
+    <a mat-stroked-button routerLink="/dashboard">Back to dashboard</a>
+  </div>
+  <div class="filters">
+    <mat-form-field appearance="outline">
+      <mat-label>Search application number</mat-label>
+      <input matInput #searchInput [value]="search()" (keyup.enter)="setSearch(searchInput.value); applySearch()">
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Status</mat-label>
+      <mat-select [value]="status()" (valueChange)="setStatus($event)">
+        <mat-option value="">All reviewable</mat-option>
+        <mat-option value="submitted">Submitted</mat-option>
+        <mat-option value="under_review">Under review</mat-option>
+        <mat-option value="manual_review">Manual review</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <button mat-flat-button color="primary" (click)="applySearch()">Search</button>
+  </div>
+  @if (errorMessage()) { <app-error-message [message]="errorMessage()" (retry)="load()" /> }
+  @if (loading()) { <app-loading-indicator label="Loading review queue..." /> }
+  @if (!loading() && applications().length === 0) { <app-empty-state icon="task_alt" title="Queue is clear" message="No applications require review." /> }
+  @if (applications().length > 0) {
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Application</th><th>Date</th><th>Status</th><th>Score</th><th>Income</th><th>Actions</th></tr></thead>
+        <tbody>
+          @for (application of applications(); track application.applicationNumber) {
+            <tr>
+              <td><a [routerLink]="['/approvals', application.applicationNumber]">{{ application.applicationNumber }}</a></td>
+              <td>{{ application.applicationDate | date:'mediumDate' }}</td>
+              <td><app-status-chip [status]="application.status" /></td>
+              <td>{{ application.creditScoreResult ?? 'Not available' }}</td>
+              <td>INR {{ application.income | number }}</td>
+              <td>
+                <button mat-button color="primary" (click)="decide(application, 'approved')" [disabled]="application.eligibilityResult?.manualReviewRequired">Approve</button>
+                <button mat-button color="warn" (click)="decide(application, 'rejected')">Reject</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination"><button mat-button (click)="previousPage()" [disabled]="page() === 1">Previous</button><span>Page {{ page() }} of {{ totalPages() }}</span><button mat-button (click)="nextPage()" [disabled]="page() >= totalPages()">Next</button></div>
+  }
+</section>
