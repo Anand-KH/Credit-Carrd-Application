@@ -1,81 +1,70 @@
 import { Routes } from '@angular/router';
 import { authGuard, guestGuard, roleGuard } from './core/auth/auth.guards';
-import { LoginPage } from './features/auth/login/login.page';
-import { RegisterPage } from './features/auth/register/register.page';
-import { DashboardPage } from './features/dashboard/dashboard.page';
-import { ForbiddenPage } from './features/forbidden/forbidden.page';
-import { ApplicationFormPage } from './features/applications/application-form/application-form.page';
-import { ApplicationListPage } from './features/applications/application-list/application-list.page';
-import { ApprovalDashboardPage } from './features/approvals/approval-dashboard.page';
-import { ApprovalDetailsPage } from './features/approvals/approval-details.page';
-import { ApplicationTrackingPage } from './features/applications/application-tracking.page';
-import { DispatchQueuePage } from './features/dispatch/dispatch-queue.page';
-import { AdminDashboardPage } from './features/admin/admin-dashboard.page';
-import { AuditHistoryPage } from './features/admin/audit-history.page';
 
+// Pages are lazy-loaded so each role only downloads the screens it can use.
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
-  { path: 'login', component: LoginPage, canActivate: [guestGuard] },
-  { path: 'register', component: RegisterPage, canActivate: [guestGuard] },
+  { path: 'login', loadComponent: () => import('./features/auth/login/login.page').then((m) => m.LoginPage), canActivate: [guestGuard] },
+  { path: 'register', loadComponent: () => import('./features/auth/register/register.page').then((m) => m.RegisterPage), canActivate: [guestGuard] },
   {
     path: 'dashboard',
-    component: DashboardPage,
+    loadComponent: () => import('./features/dashboard/dashboard.page').then((m) => m.DashboardPage),
     canActivate: [authGuard],
   },
   {
     path: 'applications',
-    component: ApplicationListPage,
+    loadComponent: () => import('./features/applications/application-list/application-list.page').then((m) => m.ApplicationListPage),
     canActivate: [authGuard, roleGuard],
     data: { roles: ['APPLICANT'] },
   },
   {
     path: 'applications/new',
-    component: ApplicationFormPage,
+    loadComponent: () => import('./features/applications/application-form/application-form.page').then((m) => m.ApplicationFormPage),
     canActivate: [authGuard, roleGuard],
     data: { roles: ['APPLICANT'] },
   },
   {
     path: 'applications/:applicationNumber/status',
-    component: ApplicationTrackingPage,
+    loadComponent: () => import('./features/applications/application-tracking.page').then((m) => m.ApplicationTrackingPage),
     canActivate: [authGuard, roleGuard],
     data: { roles: ['APPLICANT'] },
   },
   {
     path: 'staff',
-    component: DashboardPage,
+    loadComponent: () => import('./features/dashboard/dashboard.page').then((m) => m.DashboardPage),
     canActivate: [authGuard, roleGuard],
     data: { roles: ['APPROVER', 'ADMIN', 'DISPATCH_OFFICER'] },
   },
   {
     path: 'approvals',
-    component: ApprovalDashboardPage,
+    loadComponent: () => import('./features/approvals/approval-dashboard.page').then((m) => m.ApprovalDashboardPage),
     canActivate: [authGuard, roleGuard],
     data: { roles: ['APPROVER', 'ADMIN'] },
   },
   {
     path: 'approvals/:applicationNumber',
-    component: ApprovalDetailsPage,
+    loadComponent: () => import('./features/approvals/approval-details.page').then((m) => m.ApprovalDetailsPage),
     canActivate: [authGuard, roleGuard],
     data: { roles: ['APPROVER', 'ADMIN'] },
   },
   {
     path: 'dispatch',
-    component: DispatchQueuePage,
+    loadComponent: () => import('./features/dispatch/dispatch-queue.page').then((m) => m.DispatchQueuePage),
     canActivate: [authGuard, roleGuard],
     data: { roles: ['DISPATCH_OFFICER', 'ADMIN'] },
   },
   {
     path: 'admin',
-    component: AdminDashboardPage,
+    loadComponent: () => import('./features/admin/admin-dashboard.page').then((m) => m.AdminDashboardPage),
     canActivate: [authGuard, roleGuard],
     data: { roles: ['ADMIN'] },
   },
   {
     path: 'admin/audit',
-    component: AuditHistoryPage,
+    loadComponent: () => import('./features/admin/audit-history.page').then((m) => m.AuditHistoryPage),
     canActivate: [authGuard, roleGuard],
     data: { roles: ['ADMIN'] },
   },
-  { path: 'forbidden', component: ForbiddenPage },
+  { path: 'forbidden', loadComponent: () => import('./features/forbidden/forbidden.page').then((m) => m.ForbiddenPage) },
   { path: '**', redirectTo: 'dashboard' },
 ];

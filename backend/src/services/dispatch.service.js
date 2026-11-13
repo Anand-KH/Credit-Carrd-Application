@@ -27,17 +27,6 @@ function safeDispatch(dispatch) {
   };
 }
 
-function safeApprovedApplication(application) {
-  return {
-    applicationNumber: application.applicationNumber,
-    dispatchReference: '',
-    dispatchDate: application.applicationDate,
-    dispatchStatus: 'pending',
-    createdAt: application.createdAt,
-    updatedAt: application.updatedAt,
-  };
-}
-
 export function createDispatchService({
   applicationModel = Application,
   dispatchModel = CardDispatch,
@@ -47,37 +36,43 @@ export function createDispatchService({
 } = {}) {
   return {
     async list({ page, limit, skip, status }) {
-      const filter = status ? { dispatchStatus: status } : {};
-      const [dispatches, dispatchTotal, approvedApplications] = await Promise.all([
-        dispatchModel.find(filter)
-          .select('application dispatchReference dispatchDate dispatchStatus createdAt updatedAt')
-          .populate({ path: 'application', select: 'applicationNumber' })
-          .sort({ dispatchDate: -1 })
-          .lean(),
-        dispatchModel.countDocuments(filter),
-        (!status || status === 'pending'
-          ? applicationModel.find({ status: 'approved' })
-            .select('applicationNumber applicationDate createdAt updatedAt')
-            .sort({ applicationDate: -1 })
-            .lean()
-          : Promise.resolve([])),
+      // Approved applications without a dispatch record are shown as virtual
+      // `pending` rows. Doing the join, filter, sort and pagination in MongoDB
+      // keeps memory use flat however many applications exist.
+      const [result] = await applicationModel.aggregate([
+        { $match: { status: { $in: ['approved', 'dispatched'] } } },
+        {
+          $lookup: {
+            from: dispatchModel.collection?.name ?? 'carddispatches',
+            localField: '_id',
+            foreignField: 'application',
+            as: 'dispatch',
+          },
+        },
+        { $unwind: { path: '$dispatch', preserveNullAndEmptyArrays: true } },
+        {
+          $project: {
+            _id: 0,
+            applicationNumber: 1,
+            dispatchReference: { $ifNull: ['$dispatch.dispatchReference', ''] },
+            dispatchDate: { $ifNull: ['$dispatch.dispatchDate', '$applicationDate'] },
+            dispatchStatus: { $ifNull: ['$dispatch.dispatchStatus', 'pending'] },
+            createdAt: { $ifNull: ['$dispatch.createdAt', '$createdAt'] },
+            updatedAt: { $ifNull: ['$dispatch.updatedAt', '$updatedAt'] },
+          },
+        },
+        ...(status ? [{ $match: { dispatchStatus: status } }] : []),
+        { $sort: { dispatchDate: -1, applicationNumber: 1 } },
+        {
+          $facet: {
+            items: [{ $skip: skip }, { $limit: limit }],
+            total: [{ $count: 'count' }],
+          },
+        },
       ]);
-      const existingApplicationNumbers = new Set(
-        dispatches.map((item) => item.application?.applicationNumber),
-      );
-      const pendingApplications = approvedApplications
-        .filter((application) => !existingApplicationNumbers.has(application.applicationNumber))
-        .map(safeApprovedApplication);
-      const allItems = [
-        ...dispatches.map((item) => safeDispatch({
-          ...item,
-          applicationNumber: item.application?.applicationNumber,
-        })),
-        ...pendingApplications,
-      ].sort((left, right) => new Date(right.dispatchDate).getTime() - new Date(left.dispatchDate).getTime());
-      const total = dispatchTotal + pendingApplications.length;
+      const total = result?.total?.[0]?.count ?? 0;
       return {
-        items: allItems.slice(skip, skip + limit),
+        items: (result?.items ?? []).map(safeDispatch),
         page,
         limit,
         total,
@@ -115,7 +110,7 @@ export function createDispatchService({
             await applicationModel.findOneAndUpdate(
               { _id: application._id, status: 'approved' },
               { $set: { status: 'dispatched' } },
-              { new: true, runValidators: true, session },
+              { returnDocument: 'after', runValidators: true, session },
             );
             await statusHistoryModel.create([{
               application: application._id,
@@ -145,7 +140,7 @@ export function createDispatchService({
           const updated = await dispatchModel.findOneAndUpdate(
             { _id: current._id, dispatchStatus: current.dispatchStatus },
             { $set: { dispatchStatus: details.dispatchStatus } },
-            { new: true, runValidators: true, session },
+            { returnDocument: 'after', runValidators: true, session },
           );
           if (!updated) {
             throw new HttpError(409, 'DUPLICATE_DISPATCH_ACTION', 'The dispatch was updated by another request.');

@@ -16,7 +16,8 @@ import { MatIconModule } from '@angular/material/icon';
     </section>
   `,
   styles: [`
-    .error { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; padding: 1rem; border: 1px solid var(--mat-sys-error); border-radius: .75rem; color: var(--mat-sys-error); }
+    .error { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; padding: .9rem 1rem; border-radius: var(--app-radius); background: var(--app-danger-bg); color: var(--app-danger-fg); }
+    span { flex: 1; }
   `],
 })
 export class ErrorMessageComponent {

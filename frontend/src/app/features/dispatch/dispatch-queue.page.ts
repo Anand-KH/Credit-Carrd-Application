@@ -3,17 +3,18 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { DispatchService } from '../../core/dispatch/dispatch.service';
 import { CardDispatch, DispatchStatus } from '../../core/dispatch/dispatch.models';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
 import { LoadingIndicatorComponent } from '../../shared/ui/loading-indicator.component';
+import { StatusChipComponent } from '../../shared/ui/status-chip.component';
 
 @Component({
   selector: 'app-dispatch-queue-page',
-  imports: [DatePipe, MatButtonModule, MatCardModule, MatFormFieldModule, MatSelectModule, EmptyStateComponent, LoadingIndicatorComponent],
+  imports: [DatePipe, MatButtonModule, MatFormFieldModule, MatIconModule, MatSelectModule, EmptyStateComponent, LoadingIndicatorComponent, StatusChipComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dispatch-queue.page.html',
   styleUrl: './dispatch-queue.page.scss',

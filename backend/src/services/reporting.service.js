@@ -2,7 +2,15 @@ import { Application } from '../models/application.model.js';
 import { AuditLog } from '../models/audit-log.model.js';
 import { CardDispatch } from '../models/card-dispatch.model.js';
 
-const applicationStatuses = ['submitted', 'under_review', 'approved', 'rejected', 'manual_review', 'dispatched'];
+const applicationStatuses = [
+  'submitted',
+  'under_review',
+  'manual_review',
+  'pending_admin_approval',
+  'approved',
+  'rejected',
+  'dispatched',
+];
 
 function applicationFilter({ status, search, dateFrom, dateTo }) {
   const filter = {};

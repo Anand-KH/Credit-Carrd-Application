@@ -1,5 +1,16 @@
 import 'dotenv/config';
 
+// TRUST_PROXY follows Express's `trust proxy` setting: unset/"false" disables it,
+// "true" trusts every hop, a number trusts that many hops, and anything else is
+// passed through as an address/subnet list (e.g. "loopback, 10.0.0.0/8").
+function parseTrustProxy(value) {
+  const trimmed = value?.trim();
+  if (!trimmed || trimmed.toLowerCase() === 'false') return false;
+  if (trimmed.toLowerCase() === 'true') return true;
+  if (/^\d+$/.test(trimmed)) return Number(trimmed);
+  return trimmed;
+}
+
 export function loadConfig(env = process.env) {
   const port = Number(env.PORT ?? 3000);
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
@@ -30,6 +41,7 @@ export function loadConfig(env = process.env) {
 
   return {
     port,
+    trustProxy: parseTrustProxy(env.TRUST_PROXY),
     nodeEnv: env.NODE_ENV ?? 'development',
     mongoUri: env.MONGODB_URI?.trim() || null,
     allowedOrigins,

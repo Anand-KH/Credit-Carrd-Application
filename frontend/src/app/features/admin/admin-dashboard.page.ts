@@ -5,6 +5,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { RouterLink } from '@angular/router';
@@ -16,7 +17,7 @@ import { StatusChipComponent } from '../../shared/ui/status-chip.component';
 
 @Component({
   selector: 'app-admin-dashboard-page',
-  imports: [DatePipe, DecimalPipe, ReactiveFormsModule, MatButtonModule, MatCardModule, MatFormFieldModule, MatInputModule, MatSelectModule, RouterLink, EmptyStateComponent, LoadingIndicatorComponent, StatusChipComponent],
+  imports: [DatePipe, DecimalPipe, ReactiveFormsModule, MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, RouterLink, EmptyStateComponent, LoadingIndicatorComponent, StatusChipComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './admin-dashboard.page.html',
   styleUrl: './admin-dashboard.page.scss',
@@ -34,7 +35,15 @@ export class AdminDashboardPage implements OnInit {
   readonly search = new FormControl('', { nonNullable: true });
   readonly dateFrom = new FormControl('', { nonNullable: true });
   readonly dateTo = new FormControl('', { nonNullable: true });
-  readonly statuses: (keyof ApplicationCounts)[] = ['submitted', 'under_review', 'approved', 'rejected', 'manual_review', 'dispatched'];
+  readonly statuses: (keyof ApplicationCounts)[] = [
+    'submitted',
+    'under_review',
+    'manual_review',
+    'pending_admin_approval',
+    'approved',
+    'rejected',
+    'dispatched',
+  ];
 
   ngOnInit(): void { this.load(); }
 

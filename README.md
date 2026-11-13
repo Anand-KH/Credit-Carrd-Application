@@ -7,8 +7,10 @@ role-based authentication.
 
 ## Requirements
 
-- Node.js 22.12 or newer in the Node 22 line (the scaffold was generated with
-  Node.js 22.20.0)
+- Node.js 24 or 26 LTS (26 recommended; `.nvmrc` pins 26 and both
+  `package.json` files declare `engines.node`). The backend uses the native
+  `bcrypt` package, which ships prebuilt binaries, so no compiler toolchain is
+  needed on Windows or Linux x64/arm64.
 - npm 11 or a compatible recent npm release
 
 The Angular application was generated with Angular CLI 21.2.28 and uses the
@@ -68,7 +70,8 @@ Required backend variables:
 | `MONGODB_URI` | Local MongoDB or Atlas development URI; local default is `mongodb://127.0.0.1:27017/CreditCard` |
 | `JWT_SECRET` | At least 32 random characters |
 | `CREDIT_LIMIT_300K_TO_500K` | Configurable unusual income-bracket limit |
-| `CREDIT_LIMIT_300K_TO_500K_REQUIRES_CONFIRMATION` | `true` or `false` |
+| `CREDIT_LIMIT_300K_TO_500K_REQUIRES_CONFIRMATION` | `true` (default) makes approvers explicitly confirm the flagged limit before approving; `false` skips that step |
+| `TRUST_PROXY` | Optional. Leave unset locally. Behind a load balancer/reverse proxy set it (e.g. `1` or `loopback`) so rate limiting sees real client IPs |
 
 ## Start the applications
 
@@ -187,10 +190,28 @@ bodies, headers, and query values are not logged.
 Run backend commands from `backend/`:
 
 ```powershell
-npm.cmd run build
 npm.cmd run lint
 npm.cmd test
+npm.cmd run test:integration
 ```
+
+`npm test` runs the fast unit/API suite with mocked models.
+`npm run test:integration` starts a real single-node MongoDB replica set
+(`mongodb-memory-server`, which downloads a `mongod` binary on first run) and
+exercises transactions, unique indexes, and the full submit → approve →
+dispatch workflow.
+
+Unexpected (5xx) errors are logged with the source location of the throw
+(`errorLocation`), never the error message, because messages can contain
+applicant data.
+
+The production frontend build calls the API at the same-origin path `/api`.
+Serve the built app and the API behind one host (a reverse proxy routing `/api`
+to the backend), or change `frontend/src/environments/environment.ts`.
+
+After pulling model changes, run `Model.syncIndexes()` (or drop the obsolete
+indexes manually) against existing databases: several redundant single-field
+indexes were removed from the schemas, and MongoDB does not drop them on its own.
 
 ## Authentication foundation
 
@@ -202,8 +223,17 @@ npm.cmd test
   server-owned application in `submitted` status.
 - `GET /api/applications/me?page=1&limit=10` returns only the authenticated
   applicant's applications with pagination metadata.
-- Passwords are hashed with bcrypt; the database model rejects non-bcrypt
-  password values.
+- Passwords are hashed with the native `bcrypt` package (cost 12), which runs
+  hashing on libuv's thread pool instead of the main event loop. Hashes created
+  earlier with `bcryptjs` use the same `$2b$` format and keep verifying, so no
+  data migration is needed. The database model rejects non-bcrypt password
+  values.
+- Rate limits (per client IP, in-memory via `express-rate-limit`): 300 requests
+  per 15 minutes across `/api` (health checks excluded), 30 per 15 minutes on
+  `/api/auth`, and 10 *failed* sign-ins per 15 minutes on `/api/auth/login`.
+  Limited responses return `429` with `RATE_LIMITED` and standard `RateLimit`
+  headers. For several server instances, give `createRateLimiter` a shared store
+  (e.g. Redis). Security headers are set with `helmet`.
 - Backend authorization middleware reads the account and role from MongoDB on
   every request, so changing a role or deactivating an account takes effect
   immediately. Use both `authenticate()` and `authorizeRoles(...)` on protected
@@ -211,13 +241,14 @@ npm.cmd test
   enforce security. Staff roles must be provisioned by a trusted operator;
   public registration cannot assign them.
 - Tokens are signed JWT access tokens with a 15-minute expiry. The Angular app
-  keeps the token in memory only and never writes it to localStorage,
-  sessionStorage, or cookies. This reduces persistence and exposure after the
-  browser closes, but a page reload or expiry requires the user to sign in
-  again. Logout clears this tab's token; because tokens are stateless, an
-  already copied token remains usable until its 15-minute expiry. No refresh
-  token or server-side revocation list is implemented. Use HTTPS for deployed
-  environments.
+  keeps the session in `sessionStorage` (scoped to the tab and cleared when the
+  tab closes) so a page reload does not sign the user out. It never uses
+  localStorage or cookies. When the token expires, or the API answers 401, the
+  session is cleared and the user is redirected to sign in with a
+  "session expired" notice. Logout clears this tab's session; because tokens
+  are stateless, an already copied token remains usable until its 15-minute
+  expiry. No refresh token or server-side revocation list is implemented. Use
+  HTTPS for deployed environments.
 
 ## Applicant application workflow
 
@@ -237,9 +268,11 @@ does not calculate credit scores, approve applications, or set credit limits.
 
 Submission now runs a random mock score provider behind a provider interface.
 Scores are generated uniformly from 300 through 900 inclusive. Applicants must
-be strictly older than 18. An approved or rejected
+be strictly older than 18. An approved, dispatched, or rejected
 application for the same applicant in the previous six months blocks a new
-submission. The applicant update is written first inside the same MongoDB
+submission (`SIX_MONTH_RESTRICTION`), and so does any application that is still
+open (`submitted`, `under_review`, `manual_review`, `pending_admin_approval`;
+`APPLICATION_IN_PROGRESS`). The applicant update is written first inside the same MongoDB
 transaction, which serializes concurrent submissions for that applicant and
 prevents both requests from bypassing the restriction.
 
@@ -260,6 +293,12 @@ are submitted with
 `{ "decision": "approved", "reason": "Eligibility reviewed." }`.
 
 The server enforces the role, reviewable status, and score greater than 800.
+When `CREDIT_LIMIT_300K_TO_500K_REQUIRES_CONFIRMATION` is `true`, approving an
+application whose limit is flagged `confirmation_required` also needs
+`"confirmCreditLimit": true` in the body (the approval dialog shows a
+confirmation checkbox); otherwise the API returns
+`CREDIT_LIMIT_CONFIRMATION_REQUIRED`. The confirmation is recorded in the audit
+log.
 Applications requiring manual credit-limit review cannot be approved by this
 endpoint until that review is completed. Every decision atomically updates the
 application and records status history plus safe audit metadata. The

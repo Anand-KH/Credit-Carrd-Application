@@ -1,11 +1,15 @@
 import { ApplicationStatus } from '../applications/application.models';
 
+// Mirrors the backend Application.eligibilityResult sub-document.
 export interface EligibilityResult {
   ageQualified?: boolean;
-  scoreQualified?: boolean;
+  scoreQualifies?: boolean;
+  eligibleForApprovalConsideration?: boolean;
+  scoreThreshold?: number;
+  creditLimitRule?: string;
+  creditLimitReview?: 'not_required' | 'confirmation_required' | 'manual_review_required';
   manualReviewRequired?: boolean;
-  unusualCreditLimitAmount?: boolean;
-  creditLimitDecision?: number | null;
+  unusualAmountFlag?: boolean;
 }
 
 export interface ApprovalApplication {

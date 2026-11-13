@@ -4,12 +4,17 @@ import { authenticate } from '../middleware/authenticate.js';
 import { validateLogin, validateRegistration } from '../validators/auth.validator.js';
 import { User } from '../models/user.model.js';
 
-export function createAuthRouter({ config, authService, userModel = User }) {
+export function createAuthRouter({
+  config,
+  authService,
+  userModel = User,
+  loginLimiter = (_request, _response, next) => next(),
+}) {
   const router = Router();
   const controller = createAuthController(authService, config);
 
   router.post('/register', validateRegistration, controller.register);
-  router.post('/login', validateLogin, controller.login);
+  router.post('/login', loginLimiter, validateLogin, controller.login);
   router.get('/me', authenticate({ jwtSecret: config.jwtSecret, userModel }), controller.currentUser);
 
   return router;

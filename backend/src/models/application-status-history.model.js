@@ -5,7 +5,6 @@ const applicationStatusHistorySchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Application',
     required: true,
-    index: true,
   },
   previousStatus: {
     type: String,

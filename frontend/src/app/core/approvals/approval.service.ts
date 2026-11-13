@@ -22,10 +22,15 @@ export class ApprovalService {
     );
   }
 
-  decide(applicationNumber: string, decision: 'approved' | 'rejected', reason: string): Observable<{ application: ApprovalApplication }> {
+  decide(
+    applicationNumber: string,
+    decision: 'approved' | 'rejected',
+    reason: string,
+    confirmCreditLimit = false,
+  ): Observable<{ application: ApprovalApplication }> {
     return this.http.post<{ application: ApprovalApplication }>(
       `${this.apiBaseUrl}/approvals/${encodeURIComponent(applicationNumber)}/decision`,
-      { decision, reason },
+      { decision, reason, ...(confirmCreditLimit ? { confirmCreditLimit: true } : {}) },
     );
   }
 

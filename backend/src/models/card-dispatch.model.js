@@ -8,7 +8,6 @@ const cardDispatchSchema = new mongoose.Schema({
     ref: 'Application',
     required: true,
     unique: true,
-    index: true,
   },
   dispatchReference: {
     type: String,
@@ -33,7 +32,6 @@ const cardDispatchSchema = new mongoose.Schema({
   timestamps: true,
 });
 
-cardDispatchSchema.index({ application: 1, dispatchDate: -1 });
 
 export const CardDispatch = mongoose.model('CardDispatch', cardDispatchSchema);
 

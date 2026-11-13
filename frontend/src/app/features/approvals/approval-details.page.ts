@@ -2,12 +2,14 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { StatusChipComponent } from '../../shared/ui/status-chip.component';
 import { ApprovalService } from '../../core/approvals/approval.service';
 import { ApprovalApplication } from '../../core/approvals/approval.models';
 
 @Component({
   selector: 'app-approval-details-page',
-  imports: [DatePipe, DecimalPipe, MatButtonModule, RouterLink],
+  imports: [DatePipe, DecimalPipe, MatButtonModule, MatIconModule, RouterLink, StatusChipComponent],
   templateUrl: './approval-details.page.html',
   styleUrl: './approval-details.page.scss',
 })

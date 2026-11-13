@@ -1,43 +1,88 @@
 @if (isSignedIn()) {
-  <mat-sidenav-container class="shell">
-    <mat-sidenav #sidenav mode="over" role="navigation" aria-label="Main navigation">
-      <div class="drawer-brand"><span class="brand-mark">C</span><strong>CrediCard</strong></div>
-      <mat-nav-list>
-        @for (item of navigation(); track item.path) {
-          <a mat-list-item [routerLink]="item.path" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: item.path === '/dashboard' }" (click)="sidenav.close()">
-            <mat-icon matListItemIcon aria-hidden="true">{{ item.icon }}</mat-icon>
-            <span matListItemTitle>{{ item.label }}</span>
+  <mat-sidenav-container class="shell" autosize>
+    <mat-sidenav
+      #sidenav
+      class="sidebar"
+      [mode]="isDesktop() ? 'side' : 'over'"
+      [opened]="isDesktop()"
+      [fixedInViewport]="!isDesktop()"
+      role="navigation"
+      aria-label="Main navigation"
+    >
+      <div class="sidebar__inner">
+        <a class="brand brand--light" [routerLink]="homeRoute()" aria-label="CrediCard home">
+          <span class="brand-mark" aria-hidden="true"><mat-icon>credit_card</mat-icon></span>
+          <span>CrediCard</span>
+        </a>
+
+        <p class="sidebar__section">{{ roleLabel() }}</p>
+        <nav class="sidebar__nav">
+          @for (item of navigation(); track item.path) {
+            <a
+              class="nav-link"
+              [routerLink]="item.path"
+              routerLinkActive="nav-link--active"
+              [routerLinkActiveOptions]="{ exact: item.path === '/dashboard' || item.path === '/admin' || item.path === '/applications' }"
+              (click)="closeOnMobile(sidenav)"
+            >
+              <mat-icon aria-hidden="true">{{ item.icon }}</mat-icon>
+              <span>{{ item.label }}</span>
+            </a>
+          }
+        </nav>
+
+        @if (authService.currentUser(); as user) {
+          <div class="sidebar__footer">
+            <span class="avatar" aria-hidden="true">{{ initials() }}</span>
+            <div class="sidebar__user">
+              <strong>{{ user.name }}</strong>
+              <small>{{ user.email }}</small>
+            </div>
+            <button mat-icon-button type="button" aria-label="Sign out" (click)="logout()">
+              <mat-icon>logout</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
+    </mat-sidenav>
+
+    <mat-sidenav-content class="main">
+      <header class="topbar">
+        @if (!isDesktop()) {
+          <button mat-icon-button type="button" aria-label="Open navigation menu" (click)="sidenav.open()">
+            <mat-icon>menu</mat-icon>
+          </button>
+          <a class="brand" [routerLink]="homeRoute()" aria-label="CrediCard home">
+            <span class="brand-mark" aria-hidden="true"><mat-icon>credit_card</mat-icon></span>
+            <span>CrediCard</span>
           </a>
         }
-      </mat-nav-list>
-    </mat-sidenav>
-    <mat-sidenav-content>
-      <mat-toolbar class="topbar">
-        <button mat-icon-button type="button" aria-label="Open navigation menu" (click)="sidenav.open()">
-          <mat-icon>menu</mat-icon>
-        </button>
-        <a class="brand" [routerLink]="homeRoute()" aria-label="Credit card portal home">
-          <span class="brand-mark">C</span><span>CrediCard</span>
-        </a>
-        <span class="toolbar-spacer"></span>
+        <span class="topbar__spacer"></span>
         @if (authService.currentUser(); as user) {
-          <button mat-button class="user-menu-trigger" type="button" [matMenuTriggerFor]="userMenu" aria-label="Open user menu">
-            <mat-icon aria-hidden="true">account_circle</mat-icon><span>{{ user.name }}</span>
+          <button mat-button class="user-trigger" type="button" [matMenuTriggerFor]="userMenu" aria-label="Open user menu">
+            <span class="avatar avatar--sm" aria-hidden="true">{{ initials() }}</span>
+            <span class="user-trigger__name">{{ user.name }}</span>
+            <mat-icon iconPositionEnd aria-hidden="true">expand_more</mat-icon>
           </button>
-          <mat-menu #userMenu="matMenu">
-            <div class="menu-user" mat-menu-item disabled>{{ user.email }} · {{ user.role }}</div>
+          <mat-menu #userMenu="matMenu" xPosition="before">
+            <div class="menu-user">
+              <strong>{{ user.name }}</strong>
+              <small>{{ user.email }}</small>
+              <span class="menu-user__role">{{ roleLabel() }}</span>
+            </div>
             <button mat-menu-item type="button" (click)="logout()"><mat-icon>logout</mat-icon><span>Sign out</span></button>
           </mat-menu>
         }
-      </mat-toolbar>
+      </header>
       <main class="content"><router-outlet /></main>
     </mat-sidenav-content>
   </mat-sidenav-container>
 } @else {
   <div class="public-shell">
     <header class="public-header">
-      <a class="brand" routerLink="/login" aria-label="Credit card portal home">
-        <span class="brand-mark">C</span><span>CrediCard</span>
+      <a class="brand" routerLink="/login" aria-label="CrediCard home">
+        <span class="brand-mark" aria-hidden="true"><mat-icon>credit_card</mat-icon></span>
+        <span>CrediCard</span>
       </a>
     </header>
     <main class="public-content"><router-outlet /></main>

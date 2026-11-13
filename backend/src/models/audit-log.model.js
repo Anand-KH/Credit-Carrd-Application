@@ -2,16 +2,17 @@ import mongoose from 'mongoose';
 
 const forbiddenMetadataKeys = new Set([
   'password',
-  'passwordHash',
+  'passwordhash',
   'token',
   'accesstoken',
   'jwt',
   'pan',
-  'panNumber',
-  'fullPan',
+  'pannumber',
+  'fullpan',
 ]);
+// Keys are compared case-insensitively, so every entry above must be lowercase.
 
-function hasForbiddenKey(value, visited = new WeakSet()) {
+export function hasForbiddenKey(value, visited = new WeakSet()) {
   if (!value || typeof value !== 'object') return false;
   if (typeof value.toObject === 'function') {
     return hasForbiddenKey(value.toObject({ depopulate: true }), visited);
@@ -34,6 +35,7 @@ const safeMetadataSchema = new mongoose.Schema({
     min: 0,
     max: 10000000,
   },
+  creditLimitConfirmed: Boolean,
   previousStatus: String,
   newStatus: String,
   dispatchReference: String,
@@ -53,13 +55,11 @@ const auditLogSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    index: true,
   },
   targetResource: {
     type: String,
     required: true,
     trim: true,
-    index: true,
   },
   timestamp: {
     type: Date,

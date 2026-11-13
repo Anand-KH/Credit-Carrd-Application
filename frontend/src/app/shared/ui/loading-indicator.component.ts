@@ -11,7 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
       <span>{{ label() }}</span>
     </div>
   `,
-  styles: [`.loading { display: flex; align-items: center; justify-content: center; gap: .75rem; min-height: 8rem; color: var(--mat-sys-on-surface-variant); }`],
+  styles: [`.loading { display: flex; align-items: center; justify-content: center; gap: .75rem; min-height: 8rem; color: var(--app-text-muted); }`],
 })
 export class LoadingIndicatorComponent {
   readonly label = input('Loading...');

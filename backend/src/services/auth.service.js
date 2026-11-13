@@ -1,9 +1,13 @@
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { normalizeAccountStatus, normalizeUserRole, User } from '../models/user.model.js';
 import { HttpError } from '../utils/http-error.js';
 
 const bcryptRounds = 12;
+// Compared against when no user matches, so a login for an unknown email costs
+// the same bcrypt work as one for a known email (prevents account enumeration
+// via response timing). It is a hash of a random value nobody knows.
+const dummyPasswordHash = '$2b$12$Cqd/GovxLvK8eRsCijwgHO8kVVUnoRAFkcK5XedqC8YDyiTz8fDjW';
 export const jwtLifetime = '15m';
 const jwtIssuer = 'credit-card-application-api';
 const jwtAudience = 'credit-card-application-client';
@@ -63,9 +67,10 @@ export function createAuthService({
     async login({ email, password }, jwtSecret) {
       const user = await userModel.findOne({ email: email.trim().toLowerCase() })
         .select('+passwordHash');
-      const passwordMatches = user
-        ? await passwordHasher.compare(password, user.passwordHash)
-        : false;
+      const passwordMatches = await passwordHasher.compare(
+        password,
+        user?.passwordHash ?? dummyPasswordHash,
+      );
 
       if (!user || !passwordMatches) {
         throw new HttpError(401, 'INVALID_CREDENTIALS', 'Email or password is incorrect.');

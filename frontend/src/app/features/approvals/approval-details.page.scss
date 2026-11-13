@@ -1,3 +1,16 @@
-.page { max-width: 48rem; margin: 2rem auto; padding: 1rem; }
-dl { display: grid; grid-template-columns: 12rem 1fr; gap: .75rem 1rem; background: #fff; padding: 1.5rem; border-radius: .75rem; }
-dt { font-weight: 700; } .error { color: #b42318; }
+.back-link { justify-self: start; }
+.checks { display: grid; margin: 0; padding: 0; list-style: none; }
+.checks li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: .75rem;
+  padding: .85rem 0;
+  border-top: 1px solid var(--app-border);
+  color: var(--app-danger-fg);
+}
+.checks li:first-child { border-top: 0; }
+.checks li span { color: var(--mat-sys-on-surface); }
+.checks li strong { font-size: .85rem; }
+.checks--pass { color: var(--app-success-fg) !important; }
+.checks--warn { color: var(--app-warning-fg) !important; }

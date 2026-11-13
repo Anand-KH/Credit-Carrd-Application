@@ -28,14 +28,22 @@ export function validateApprovalQuery(request, _response, next) {
 }
 
 export function validateApprovalDecision(request, _response, next) {
-  const { decision, reason } = request.body;
+  const { decision, reason, confirmCreditLimit } = request.body;
+  const unknownField = Object.keys(request.body)
+    .find((field) => !['decision', 'reason', 'confirmCreditLimit'].includes(field));
+  if (unknownField) {
+    return next(new HttpError(400, 'INVALID_REQUEST_BODY', 'Request contains unsupported fields.'));
+  }
+  if (confirmCreditLimit !== undefined && typeof confirmCreditLimit !== 'boolean') {
+    return next(new HttpError(400, 'VALIDATION_ERROR', 'confirmCreditLimit must be a boolean.'));
+  }
   if (!decisionValues.has(decision)) {
     return next(new HttpError(400, 'VALIDATION_ERROR', 'Decision must be approved or rejected.'));
   }
   if (typeof reason !== 'string' || reason.trim().length < 5 || reason.trim().length > 1000) {
     return next(new HttpError(400, 'VALIDATION_ERROR', 'A reason of 5 to 1000 characters is required.'));
   }
-  request.body = { decision, reason: reason.trim() };
+  request.body = { decision, reason: reason.trim(), confirmCreditLimit: confirmCreditLimit === true };
   return next();
 }
 

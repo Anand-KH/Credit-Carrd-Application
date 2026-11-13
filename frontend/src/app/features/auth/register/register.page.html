@@ -1,10 +1,27 @@
-<section class="auth-card" aria-labelledby="register-title">
+<div class="auth-layout">
+  <aside class="auth-hero" aria-hidden="true">
+    <div class="auth-hero__copy">
+      <p class="auth-hero__eyebrow">CrediCard</p>
+      <h2>Join and apply in minutes.</h2>
+      <ul>
+        <li>Instant eligibility check</li>
+        <li>Track every status in real time</li>
+        <li>Card delivered to your door</li>
+      </ul>
+    </div>
+    <div class="bank-card">
+      <div class="bank-card__top"><span class="bank-card__chip"></span><span class="bank-card__brand">CrediCard</span></div>
+      <span class="bank-card__number">•••• •••• •••• 2026</span>
+      <div class="bank-card__bottom"><span>CARD HOLDER</span><span>12/30</span></div>
+    </div>
+  </aside>
+  <section class="auth-card" aria-labelledby="register-title">
   <p class="eyebrow">Get started</p>
   <h1 id="register-title">Create your account</h1>
   <p class="intro">New public accounts are registered as applicants.</p>
 
   @if (errorMessage()) {
-    <p class="form-error" role="alert">{{ errorMessage() }}</p>
+    <p class="alert alert--error" role="alert">{{ errorMessage() }}</p>
   }
 
   <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
@@ -34,7 +51,18 @@
 
     <mat-form-field appearance="outline">
       <mat-label>Password</mat-label>
-      <input matInput type="password" formControlName="password" autocomplete="new-password">
+      <input matInput [type]="showPassword() ? 'text' : 'password'" formControlName="password" autocomplete="new-password">
+      <button
+        mat-icon-button
+        matSuffix
+        type="button"
+        class="password-toggle"
+        (click)="showPassword.set(!showPassword())"
+        [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+        [attr.aria-pressed]="showPassword()"
+      >
+        <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
     </mat-form-field>
     @if (form.controls.password.touched && form.controls.password.hasError('required')) {
       <p class="field-error" role="alert">Password is required.</p>
@@ -46,7 +74,18 @@
 
     <mat-form-field appearance="outline">
       <mat-label>Confirm password</mat-label>
-      <input matInput type="password" formControlName="confirmPassword" autocomplete="new-password">
+      <input matInput [type]="showConfirmPassword() ? 'text' : 'password'" formControlName="confirmPassword" autocomplete="new-password">
+      <button
+        mat-icon-button
+        matSuffix
+        type="button"
+        class="password-toggle"
+        (click)="showConfirmPassword.set(!showConfirmPassword())"
+        [attr.aria-label]="showConfirmPassword() ? 'Hide confirm password' : 'Show confirm password'"
+        [attr.aria-pressed]="showConfirmPassword()"
+      >
+        <mat-icon>{{ showConfirmPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
     </mat-form-field>
     @if (form.controls.confirmPassword.touched && form.controls.confirmPassword.hasError('required')) {
       <p class="field-error" role="alert">Confirm password is required.</p>
@@ -54,10 +93,11 @@
       <p class="field-error" role="alert">Passwords do not match.</p>
     }
 
-    <button mat-flat-button type="submit" [disabled]="submitting()">
+    <button mat-flat-button class="btn-lg" type="submit" [disabled]="submitting()">
       {{ submitting() ? 'Creating account…' : 'Create account' }}
     </button>
   </form>
 
   <p class="switch-link">Already registered? <a routerLink="/login">Sign in</a></p>
 </section>
+</div>

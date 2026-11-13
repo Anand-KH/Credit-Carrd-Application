@@ -1,6 +1,10 @@
 {
   "name": "frontend",
   "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "node": "^24.0.0 || ^26.0.0"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -9,7 +13,6 @@
     "test": "ng test",
     "lint": "ng lint"
   },
-  "private": true,
   "packageManager": "npm@11.21.1",
   "dependencies": {
     "@angular/cdk": "~21.2.14",

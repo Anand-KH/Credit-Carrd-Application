@@ -4,6 +4,19 @@ import { HttpError } from '../utils/http-error.js';
 
 const SCORE_THRESHOLD = 800;
 const SIX_MONTHS = 6;
+// Any application that is still open, or that reached a final decision within
+// the restriction window, blocks a new submission. `dispatched` applications
+// were approved, so they count too.
+const BLOCKING_STATUSES = [
+  'submitted',
+  'under_review',
+  'manual_review',
+  'pending_admin_approval',
+  'approved',
+  'dispatched',
+  'rejected',
+];
+const OPEN_STATUSES = ['submitted', 'under_review', 'manual_review', 'pending_admin_approval'];
 
 function calculateCreditLimit(income, configuredLimit) {
   if (income <= 200000) {
@@ -63,14 +76,24 @@ export function createEligibilityService({
       const cutoffDate = subtractMonths(evaluationDate, SIX_MONTHS);
       const recentApplication = await applicationModel.findOne({
         applicant: applicantId,
-        status: { $in: ['approved', 'rejected'] },
-        applicationDate: { $gte: cutoffDate },
+        status: { $in: BLOCKING_STATUSES },
+        $or: [
+          { status: { $in: OPEN_STATUSES } },
+          { applicationDate: { $gte: cutoffDate } },
+        ],
       }).sort({ applicationDate: -1 }).session(session);
+      if (recentApplication && OPEN_STATUSES.includes(recentApplication.status)) {
+        throw new HttpError(
+          409,
+          'APPLICATION_IN_PROGRESS',
+          'An application is already in progress for this applicant.',
+        );
+      }
       if (recentApplication) {
         throw new HttpError(
           409,
           'SIX_MONTH_RESTRICTION',
-          'An approved or rejected application exists within the previous six months.',
+          'An approved, dispatched, or rejected application exists within the previous six months.',
         );
       }
 
@@ -109,4 +132,4 @@ export function createEligibilityService({
   };
 }
 
-export { calculateCreditLimit, SCORE_THRESHOLD };
+export { calculateCreditLimit, SCORE_THRESHOLD, BLOCKING_STATUSES };

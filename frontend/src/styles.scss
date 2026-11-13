@@ -1,45 +1,262 @@
-// Include theming for Angular Material with `mat.theme()`.
-// This Sass mixin will define CSS variables that are used for styling Angular Material
-// components according to the Material 3 design spec.
-// Learn more about theming and how to use it for your application's
-// custom components at https://material.angular.dev/guide/theming
+// CrediCard design system.
+// - Material 3 theme generated from the brand colours (navy #1E3A8A, teal #0D9488);
+//   regenerate with `ng generate @angular/material:theme-color`.
+// - `color-scheme: light dark` makes every --mat-sys-* token (and the app tokens
+//   below, via light-dark()) follow the operating-system theme automatically.
+// - Pages use the shared classes in this file instead of hard-coded colours, so
+//   they work in both themes.
 @use '@angular/material' as mat;
+@use './theme-colors' as brand;
 
 html {
   height: 100%;
+  color-scheme: light dark;
   @include mat.theme(
     (
       color: (
-        primary: mat.$azure-palette,
-        tertiary: mat.$blue-palette,
+        primary: brand.$primary-palette,
+        tertiary: brand.$tertiary-palette,
       ),
-      typography: Roboto,
+      typography: (
+        plain-family: ('Inter', system-ui, sans-serif),
+        brand-family: ('Inter', system-ui, sans-serif),
+        bold-weight: 700,
+        medium-weight: 600,
+        regular-weight: 400,
+      ),
       density: 0,
     )
   );
+
+  // App tokens that Material does not provide.
+  --app-radius-sm: 0.5rem;
+  --app-radius: 0.875rem;
+  --app-radius-lg: 1.25rem;
+  --app-page-bg: light-dark(#f4f6fb, #0b1020);
+  --app-surface: light-dark(#ffffff, #121a2e);
+  --app-surface-muted: light-dark(#f8fafc, #18213a);
+  --app-border: light-dark(#e2e8f0, #26304a);
+  --app-text-muted: light-dark(#5b6b80, #9aa8bf);
+  --app-shadow: light-dark(0 1px 2px rgb(15 23 42 / 6%), 0 1px 2px rgb(0 0 0 / 40%)),
+    light-dark(0 8px 24px rgb(15 23 42 / 6%), 0 8px 24px rgb(0 0 0 / 30%));
+  --app-brand-gradient: linear-gradient(135deg, #1e3a8a 0%, #1e40af 45%, #0d9488 100%);
+
+  --app-success-bg: light-dark(#dcfce7, #0f3a28);
+  --app-success-fg: light-dark(#166534, #86efac);
+  --app-warning-bg: light-dark(#fef3c7, #3d2e0a);
+  --app-warning-fg: light-dark(#92400e, #fcd34d);
+  --app-danger-bg: light-dark(#fee2e2, #43161a);
+  --app-danger-fg: light-dark(#b91c1c, #fca5a5);
+  --app-info-bg: light-dark(#e0e7ff, #1c2550);
+  --app-info-fg: light-dark(#3730a3, #a5b4fc);
 }
 
 body {
-  // Default the application to a light color theme. This can be changed to
-  // `dark` to enable the dark color theme, or to `light dark` to defer to the
-  // user's system settings.
-  color-scheme: light;
-
-  // Set a default background, font and text colors for the application using
-  // Angular Material's system-level CSS variables. Learn more about these
-  // variables at https://material.angular.dev/guide/system-variables
-  background-color: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-body-medium);
-
-  // Reset the user agent margin.
   margin: 0;
   height: 100%;
+  background-color: var(--app-page-bg);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  -webkit-font-smoothing: antialiased;
 }
-/* You can add global styles to this file, and also import other style files */
+
+h1, h2, h3 { letter-spacing: -0.01em; }
+a { color: var(--mat-sys-primary); }
+
+// ---------- Material refinements ----------
+.mat-mdc-card {
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg) !important;
+  background: var(--app-surface) !important;
+  box-shadow: var(--app-shadow) !important;
+}
+.mat-mdc-card-header { padding: 1.25rem 1.25rem 0; }
+.mat-mdc-card-content:last-child { padding-bottom: 1.25rem; }
+.mat-mdc-card-title { font-weight: 650 !important; }
+.mdc-button { border-radius: 0.625rem !important; font-weight: 600 !important; letter-spacing: 0 !important; }
+.mat-mdc-form-field { width: 100%; }
 
 .app-error-toast {
   --mdc-snackbar-container-color: var(--mat-sys-error);
   --mdc-snackbar-supporting-text-color: var(--mat-sys-on-error);
-  --mat-mdc-snack-bar-button-color: var(--mat-sys-on-error);
+  --mat-snack-bar-button-color: var(--mat-sys-on-error);
 }
+
+// ---------- Layout ----------
+.page {
+  display: grid;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 76rem;
+  margin: 0 auto;
+}
+.page--narrow { max-width: 56rem; }
+.page--form { max-width: 52rem; }
+
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.page-header h1 {
+  margin: 0.4rem 0 0.5rem;
+  line-height: 1.2;
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  font-weight: 700;
+}
+.page-header p:not(.eyebrow) { margin: 0; color: var(--app-text-muted); }
+.page-header__actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+.eyebrow {
+  margin: 0;
+  color: var(--mat-sys-tertiary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.surface {
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
+  background: var(--app-surface);
+  box-shadow: var(--app-shadow);
+}
+.section-title { margin: 1.75rem 0 0.75rem; font-size: 1rem; font-weight: 650; }
+.section-title:first-child { margin-top: 0; }
+.muted { color: var(--app-text-muted); }
+
+// ---------- Stats ----------
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1rem;
+}
+.stat-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.15rem 0.9rem;
+  padding: 1.25rem;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
+  background: var(--app-surface);
+  box-shadow: var(--app-shadow);
+}
+.stat-card__icon {
+  display: grid;
+  grid-row: span 2;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border-radius: var(--app-radius);
+  background: var(--app-info-bg);
+  color: var(--app-info-fg);
+}
+.stat-card__label { color: var(--app-text-muted); font-size: 0.85rem; font-weight: 500; text-transform: capitalize; }
+.stat-card__value { font-size: 1.6rem; font-weight: 700; line-height: 1.2; }
+
+// ---------- Lists ----------
+.list { display: grid; }
+.list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--app-border);
+}
+.list-row:last-child { border-bottom: 0; }
+.list-row__main { display: grid; gap: 0.2rem; min-width: 0; }
+.list-row__main strong { font-weight: 650; }
+.list-row__main small, .list-row__meta { color: var(--app-text-muted); font-size: 0.85rem; }
+.list-row__aside { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; justify-content: flex-end; }
+.list-row a { font-weight: 650; text-decoration: none; }
+.list-row a:hover { text-decoration: underline; }
+
+// ---------- Tables ----------
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  background: var(--app-surface);
+}
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.data-table th {
+  padding: 0.75rem 1rem;
+  background: var(--app-surface-muted);
+  color: var(--app-text-muted);
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.data-table td { padding: 0.85rem 1rem; border-top: 1px solid var(--app-border); vertical-align: middle; }
+.data-table td:not(:last-child) { white-space: nowrap; }
+.data-table tbody tr:hover { background: var(--app-surface-muted); }
+.data-table a { font-weight: 650; text-decoration: none; }
+.data-table .num { font-variant-numeric: tabular-nums; }
+
+// ---------- Filters & pagination ----------
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  align-items: start;
+  gap: 0.75rem;
+}
+.filters > button { height: 3.5rem; }
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1rem;
+  color: var(--app-text-muted);
+  font-size: 0.875rem;
+}
+
+// ---------- Feedback ----------
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.8rem 1rem;
+  border-radius: var(--app-radius);
+  font-size: 0.9rem;
+}
+.alert--error { background: var(--app-danger-bg); color: var(--app-danger-fg); }
+.alert--success { background: var(--app-success-bg); color: var(--app-success-fg); }
+.alert--warning { background: var(--app-warning-bg); color: var(--app-warning-fg); }
+.alert--info { background: var(--app-info-bg); color: var(--app-info-fg); }
+.field-error { margin: -0.4rem 0 0.4rem; color: var(--app-danger-fg); font-size: 0.8rem; }
+.hint-warning { color: var(--app-warning-fg); font-size: 0.75rem; line-height: 1.35; }
+
+// ---------- Forms ----------
+.form-grid { display: grid; gap: 0.25rem; }
+.two-column { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1rem; }
+.field-group { min-width: 0; }
+.form-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem; }
+.form-actions .mdc-button, .btn-lg { min-height: 3rem; padding-inline: 1.5rem !important; }
+
+// ---------- Responsive ----------
+@media (max-width: 640px) {
+  .page-header { align-items: stretch; flex-direction: column; }
+  .page-header__actions > * { flex: 1; }
+  .two-column { grid-template-columns: 1fr; }
+  .list-row { align-items: flex-start; flex-direction: column; }
+  .list-row__aside { justify-content: flex-start; }
+  .pagination { flex-wrap: wrap; justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
+// Topbar user button: keep avatar, name and chevron on one line.
+.user-trigger .mdc-button__label { display: inline-flex; align-items: center; gap: 0.5rem; }

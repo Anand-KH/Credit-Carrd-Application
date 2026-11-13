@@ -10,13 +10,11 @@ const applicationSchema = new mongoose.Schema({
     unique: true,
     trim: true,
     uppercase: true,
-    index: true,
   },
   applicant: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Applicant',
     required: true,
-    index: true,
   },
   income: {
     type: Number,
@@ -34,7 +32,6 @@ const applicationSchema = new mongoose.Schema({
     enum: applicationStatuses,
     required: true,
     default: 'submitted',
-    index: true,
   },
   creditScoreResult: {
     type: Number,
@@ -95,10 +92,11 @@ const applicationSchema = new mongoose.Schema({
   timestamps: true,
 });
 
+// Compound indexes also serve queries on their leading fields, so `applicant`
+// and `status` need no single-field indexes of their own.
 applicationSchema.index({ applicant: 1, status: 1, applicationDate: 1 });
 applicationSchema.index({ applicant: 1, applicationDate: -1 });
 applicationSchema.index({ status: 1, applicationDate: 1 });
-applicationSchema.index({ applicationNumber: 1, applicationDate: -1 });
 
 applicationSchema.statics.findRecentApplicationsForEligibility = function findRecentApplicationsForEligibility(applicantId, cutoffDate) {
   return this.find({

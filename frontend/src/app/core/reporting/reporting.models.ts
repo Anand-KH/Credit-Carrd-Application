@@ -16,6 +16,7 @@ export interface ApplicationCounts {
   approved: number;
   rejected: number;
   manual_review: number;
+  pending_admin_approval: number;
   dispatched: number;
 }
 

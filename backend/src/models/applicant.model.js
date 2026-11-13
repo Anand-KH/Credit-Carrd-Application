@@ -7,7 +7,6 @@ const applicantSchema = new mongoose.Schema(
       ref: "User",
       required: true,
       unique: true,
-      index: true,
     },
     dateOfBirth: {
       type: Date,
@@ -64,7 +63,6 @@ const applicantSchema = new mongoose.Schema(
   },
 );
 
-applicantSchema.index({ user: 1 }, { unique: true });
 applicantSchema.index({ annualIncome: 1 });
 
 export const Applicant = mongoose.model("Applicant", applicantSchema);
