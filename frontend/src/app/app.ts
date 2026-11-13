@@ -8,6 +8,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/auth/auth.service';
+import { LogoComponent } from './shared/ui/logo.component';
 import { UserRole } from './core/auth/auth.models';
 
 interface NavigationItem {
@@ -26,6 +27,7 @@ interface NavigationItem {
     RouterLink,
     RouterLinkActive,
     RouterOutlet,
+    LogoComponent,
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',

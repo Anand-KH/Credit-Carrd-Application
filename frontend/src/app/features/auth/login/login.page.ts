@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { AuthService } from '../../../core/auth/auth.service';
+import { LogoComponent } from '../../../shared/ui/logo.component';
 import { EMAIL_PATTERN } from '../../../core/auth/validation-patterns';
 
 @Component({
@@ -18,6 +19,7 @@ import { EMAIL_PATTERN } from '../../../core/auth/validation-patterns';
     MatInputModule,
     ReactiveFormsModule,
     RouterLink,
+    LogoComponent,
   ],
   templateUrl: './login.page.html',
   styleUrl: '../auth.page.scss',

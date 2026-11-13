@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { AuthService } from '../../../core/auth/auth.service';
+import { LogoComponent } from '../../../shared/ui/logo.component';
 import { EMAIL_PATTERN } from '../../../core/auth/validation-patterns';
 
 function passwordsMatch(control: AbstractControl): ValidationErrors | null {
@@ -24,6 +25,7 @@ function passwordsMatch(control: AbstractControl): ValidationErrors | null {
     MatInputModule,
     ReactiveFormsModule,
     RouterLink,
+    LogoComponent,
   ],
   templateUrl: './register.page.html',
   styleUrl: '../auth.page.scss',
