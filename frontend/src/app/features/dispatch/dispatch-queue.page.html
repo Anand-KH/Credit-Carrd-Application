@@ -1,12 +1,72 @@
 <section class="page">
-  <div class="page-heading"><div><p class="eyebrow">Dispatch operations</p><h1>Card dispatch queue</h1><p>Only approved applications can be dispatched.</p></div></div>
-  @if (successMessage()) { <p class="success" role="status">{{ successMessage() }}</p> }
-  @if (loading()) { <app-loading-indicator label="Loading dispatch queue..." /> }
-  @else if (dispatches().length === 0) { <app-empty-state icon="local_shipping" title="No dispatch records" message="Approved applications will appear here when dispatch is created." /> }
-  @else {
-    <mat-card class="queue-card"><mat-card-header><mat-card-title>Dispatch queue</mat-card-title><mat-card-subtitle>Approved applications waiting for or moving through delivery.</mat-card-subtitle></mat-card-header><mat-card-content><div class="filters"><mat-form-field appearance="outline"><mat-label>Filter status</mat-label><mat-select [value]="status()" (valueChange)="setStatus($event)"><mat-option value="">All statuses</mat-option><mat-option value="pending">Pending</mat-option><mat-option value="in_transit">In transit</mat-option><mat-option value="delivered">Delivered</mat-option><mat-option value="failed">Failed</mat-option></mat-select></mat-form-field></div>
-      <div class="dispatch-list">@for (dispatch of dispatches(); track dispatch.applicationNumber) { <div class="dispatch-row"><div class="dispatch-details"><strong>{{ dispatch.applicationNumber }}</strong><small>{{ dispatch.dispatchReference || 'Dispatch not created · New dispatches start as pending' }} · {{ dispatch.dispatchDate | date:'mediumDate' }}</small></div><div class="dispatch-actions"><mat-form-field appearance="outline"><mat-label>Status</mat-label><mat-select [value]="selectedStatus(dispatch)" (valueChange)="setSelectedStatus(dispatch, $event)" [attr.aria-label]="'Status for ' + dispatch.applicationNumber"><mat-option value="pending">Pending</mat-option><mat-option value="in_transit" [disabled]="!dispatch.dispatchReference">In transit</mat-option><mat-option value="delivered" [disabled]="!dispatch.dispatchReference">Delivered</mat-option><mat-option value="failed" [disabled]="!dispatch.dispatchReference">Failed</mat-option></mat-select></mat-form-field><button mat-flat-button color="primary" type="button" (click)="updateDispatch(dispatch)" [disabled]="updatingApplication() === dispatch.applicationNumber || (!!dispatch.dispatchReference && selectedStatus(dispatch) === dispatch.dispatchStatus)">{{ updatingApplication() === dispatch.applicationNumber ? 'Updating...' : dispatch.dispatchReference ? 'Update' : 'Create dispatch' }}</button></div></div>}</div>
-      <div class="pagination"><button mat-stroked-button type="button" (click)="previousPage()" [disabled]="page() === 1">Previous</button><span>Page {{ page() }} of {{ totalPages() }}</span><button mat-stroked-button type="button" (click)="nextPage()" [disabled]="page() >= totalPages()">Next</button></div>
-    </mat-card-content></mat-card>
-  }
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Dispatch operations</p>
+      <h1>Card dispatch queue</h1>
+      <p>Approved applications waiting for or moving through delivery.</p>
+    </div>
+  </header>
+
+  @if (successMessage()) { <p class="alert alert--success" role="status">{{ successMessage() }}</p> }
+  @if (errorMessage()) { <p class="alert alert--error" role="alert">{{ errorMessage() }}</p> }
+
+  <div class="surface queue">
+    <div class="toolbar">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Filter status</mat-label>
+        <mat-select [value]="status()" (valueChange)="setStatus($event)">
+          <mat-option value="">All statuses</mat-option>
+          <mat-option value="pending">Pending</mat-option>
+          <mat-option value="in_transit">In transit</mat-option>
+          <mat-option value="delivered">Delivered</mat-option>
+          <mat-option value="failed">Failed</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    @if (loading()) {
+      <app-loading-indicator label="Loading dispatch queue..." />
+    } @else if (dispatches().length === 0) {
+      <app-empty-state icon="local_shipping" title="No dispatch records" message="Approved applications will appear here." />
+    } @else {
+      <div class="dispatch-list">
+        @for (dispatch of dispatches(); track dispatch.applicationNumber) {
+          <article class="dispatch-row">
+            <span class="dispatch-row__icon" aria-hidden="true"><mat-icon>{{ dispatch.dispatchReference ? 'local_shipping' : 'inventory_2' }}</mat-icon></span>
+            <div class="dispatch-row__details">
+              <div class="dispatch-row__title">
+                <strong>{{ dispatch.applicationNumber }}</strong>
+                <app-status-chip [status]="dispatch.dispatchStatus" />
+              </div>
+              <small>{{ dispatch.dispatchReference || 'Dispatch not created yet' }} · {{ dispatch.dispatchDate | date:'mediumDate' }}</small>
+            </div>
+            <div class="dispatch-row__actions">
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label>Status</mat-label>
+                <mat-select [value]="selectedStatus(dispatch)" (valueChange)="setSelectedStatus(dispatch, $event)" [attr.aria-label]="'Status for ' + dispatch.applicationNumber">
+                  <mat-option value="pending">Pending</mat-option>
+                  <mat-option value="in_transit" [disabled]="!dispatch.dispatchReference">In transit</mat-option>
+                  <mat-option value="delivered" [disabled]="!dispatch.dispatchReference">Delivered</mat-option>
+                  <mat-option value="failed" [disabled]="!dispatch.dispatchReference">Failed</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <button
+                mat-flat-button
+                type="button"
+                (click)="updateDispatch(dispatch)"
+                [disabled]="updatingApplication() === dispatch.applicationNumber || (!!dispatch.dispatchReference && selectedStatus(dispatch) === dispatch.dispatchStatus)"
+              >
+                {{ updatingApplication() === dispatch.applicationNumber ? 'Updating…' : dispatch.dispatchReference ? 'Update' : 'Create dispatch' }}
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+      <div class="pagination">
+        <button mat-stroked-button type="button" (click)="previousPage()" [disabled]="page() === 1">Previous</button>
+        <span>Page {{ page() }} of {{ totalPages() }}</span>
+        <button mat-stroked-button type="button" (click)="nextPage()" [disabled]="page() >= totalPages()">Next</button>
+      </div>
+    }
+  </div>
 </section>

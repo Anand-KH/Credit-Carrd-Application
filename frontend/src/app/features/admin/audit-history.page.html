@@ -1,6 +1,55 @@
 <section class="page">
-  <div class="heading"><div><p class="eyebrow">Administrator oversight</p><h1>Audit history</h1><p>Read-only operational history and status changes.</p></div><a mat-stroked-button routerLink="/admin">Back to reports</a></div>
-  <mat-card><mat-card-content><form class="filters" (ngSubmit)="applyFilters()"><mat-form-field appearance="outline"><mat-label>Action</mat-label><input matInput [formControl]="action"></mat-form-field><mat-form-field appearance="outline"><mat-label>Target resource</mat-label><input matInput [formControl]="targetResource"></mat-form-field><button mat-flat-button color="primary" type="submit">Apply filters</button></form>
-    @if (loading()) { <app-loading-indicator label="Loading audit history..." /> } @else if (entries().length === 0) { <app-empty-state icon="history" title="No audit entries" message="No matching audit activity was found." /> } @else { <div class="table-wrap"><table><thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Target</th><th>Status</th></tr></thead><tbody>@for (entry of entries(); track entry.timestamp + entry.action + entry.targetResource) { <tr><td>{{ entry.timestamp | date:'medium' }}</td><td>{{ entry.actor }}</td><td>{{ entry.action }}</td><td>{{ entry.targetResource }}</td><td>{{ entry.status ?? 'Not available' }}</td></tr> }</tbody></table></div><div class="pagination"><button mat-stroked-button type="button" (click)="previousPage()" [disabled]="page() === 1">Previous</button><span>Page {{ page() }} of {{ totalPages() }}</span><button mat-stroked-button type="button" (click)="nextPage()" [disabled]="page() >= totalPages()">Next</button></div> }
-  </mat-card-content></mat-card>
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Administrator oversight</p>
+      <h1>Audit history</h1>
+      <p>Read-only record of decisions, reviews and dispatch changes.</p>
+    </div>
+    <div class="page-header__actions">
+      <a mat-stroked-button routerLink="/admin">Back to reports</a>
+    </div>
+  </header>
+
+  @if (errorMessage()) {
+    <p class="alert alert--error" role="alert">{{ errorMessage() }}</p>
+  }
+
+  <div class="surface audit">
+    <form class="filters" (ngSubmit)="applyFilters()">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic"><mat-label>Action</mat-label><input matInput [formControl]="action" placeholder="application_approved"></mat-form-field>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic"><mat-label>Target resource</mat-label><input matInput [formControl]="targetResource" placeholder="APP-…"></mat-form-field>
+      <button mat-flat-button type="submit">Apply filters</button>
+    </form>
+
+    @if (loading()) {
+      <app-loading-indicator label="Loading audit history..." />
+    } @else if (entries().length === 0) {
+      <app-empty-state icon="history" title="No audit entries" message="No matching audit activity was found." />
+    } @else {
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Target</th><th>Status</th></tr></thead>
+          <tbody>
+            @for (entry of entries(); track entry.timestamp + entry.action + entry.targetResource) {
+              <tr>
+                <td class="nowrap">{{ entry.timestamp | date:'medium' }}</td>
+                <td><code>{{ entry.actor }}</code></td>
+                <td><span class="action">{{ entry.action.replaceAll('_', ' ') }}</span></td>
+                <td><strong>{{ entry.targetResource }}</strong></td>
+                <td>
+                  @if (entry.status) { <app-status-chip [status]="entry.status" /> }
+                  @else { <span class="muted">n/a</span> }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <button mat-stroked-button type="button" (click)="previousPage()" [disabled]="page() === 1">Previous</button>
+        <span>Page {{ page() }} of {{ totalPages() }}</span>
+        <button mat-stroked-button type="button" (click)="nextPage()" [disabled]="page() >= totalPages()">Next</button>
+      </div>
+    }
+  </div>
 </section>

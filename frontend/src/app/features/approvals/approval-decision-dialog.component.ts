@@ -1,13 +1,15 @@
 import { Component, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { DecimalPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'app-approval-decision-dialog',
-  imports: [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatInputModule],
+  imports: [ReactiveFormsModule, DecimalPipe, MatDialogModule, MatButtonModule, MatCheckboxModule, MatFormFieldModule, MatInputModule],
   styles: [`
     mat-dialog-content {
       box-sizing: border-box;
@@ -32,9 +34,14 @@ import { MatInputModule } from '@angular/material/input';
       min-width: 0;
     }
 
+    .limit-confirmation {
+      display: block;
+      margin-bottom: 0.75rem;
+    }
+
     .field-error {
       margin: -0.25rem 0 0.75rem;
-      color: #9c2520;
+      color: var(--app-danger-fg);
       font-size: 0.8rem;
     }
   `],
@@ -60,6 +67,11 @@ import { MatInputModule } from '@angular/material/input';
           <textarea matInput [formControl]="reason" rows="4"></textarea>
         </mat-form-field>
       }
+      @if (requiresLimitConfirmation) {
+        <mat-checkbox class="limit-confirmation" [formControl]="confirmLimit">
+          I confirm the flagged credit limit of INR {{ data.creditLimitToConfirm | number }} is intended.
+        </mat-checkbox>
+      }
       @if (reason.touched && (reason.hasError('required') || reason.hasError('minlength'))) {
         <p class="field-error" role="alert">A reason of at least 5 characters is required.</p>
       } @else if (reason.touched && reason.hasError('maxlength')) {
@@ -68,19 +80,37 @@ import { MatInputModule } from '@angular/material/input';
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close>Cancel</button>
-      <button mat-flat-button color="primary" [disabled]="reason.invalid || (data.decision === 'manual_review' && creditLimit.invalid)" (click)="submit()">Confirm</button>
+      <button mat-flat-button color="primary" [disabled]="!canSubmit()" (click)="submit()">Confirm</button>
     </mat-dialog-actions>
   `,
 })
 export class ApprovalDecisionDialogComponent {
-  readonly data = inject<{ decision: 'approved' | 'rejected' | 'manual_review' }>(MAT_DIALOG_DATA);
+  readonly data = inject<{
+    decision: 'approved' | 'rejected' | 'manual_review';
+    /** Set when the backend flagged the limit as unusual and approval needs explicit confirmation. */
+    creditLimitToConfirm?: number | null;
+  }>(MAT_DIALOG_DATA);
+  readonly requiresLimitConfirmation = this.data.decision === 'approved'
+    && this.data.creditLimitToConfirm !== undefined;
   private readonly dialogRef = inject(MatDialogRef<ApprovalDecisionDialogComponent>);
   readonly reason = new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.minLength(5), Validators.maxLength(1000)] });
   readonly creditLimit = new FormControl(0, { nonNullable: true, validators: [Validators.required, Validators.min(1), Validators.max(10000000)] });
 
+  readonly confirmLimit = new FormControl(false, { nonNullable: true });
+
+  canSubmit(): boolean {
+    return this.reason.valid
+      && (this.data.decision !== 'manual_review' || this.creditLimit.valid)
+      && (!this.requiresLimitConfirmation || this.confirmLimit.value);
+  }
+
   submit(): void {
-    if (this.reason.valid && (this.data.decision !== 'manual_review' || this.creditLimit.valid)) {
-      this.dialogRef.close({ reason: this.reason.value, creditLimit: this.creditLimit.value });
+    if (this.canSubmit()) {
+      this.dialogRef.close({
+        reason: this.reason.value,
+        creditLimit: this.creditLimit.value,
+        confirmCreditLimit: this.requiresLimitConfirmation && this.confirmLimit.value,
+      });
     }
   }
 }

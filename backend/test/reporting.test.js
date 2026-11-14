@@ -111,7 +111,15 @@ describe('administrator reporting', () => {
     });
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({
-      counts: { submitted: 2, approved: 1, rejected: 0, manual_review: 0, dispatched: 0, under_review: 0 },
+      counts: {
+        submitted: 2,
+        approved: 1,
+        rejected: 0,
+        manual_review: 0,
+        pending_admin_approval: 0,
+        dispatched: 0,
+        under_review: 0,
+      },
     });
     expect(applicationModel.aggregate).toHaveBeenCalledOnce();
   });

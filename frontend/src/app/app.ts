@@ -1,12 +1,14 @@
 import { Component, computed, inject } from '@angular/core';
+import { BreakpointObserver } from '@angular/cdk/layout';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/auth/auth.service';
+import { LogoComponent } from './shared/ui/logo.component';
 import { UserRole } from './core/auth/auth.models';
 
 interface NavigationItem {
@@ -20,13 +22,12 @@ interface NavigationItem {
   imports: [
     MatButtonModule,
     MatIconModule,
-    MatListModule,
     MatMenuModule,
     MatSidenavModule,
-    MatToolbarModule,
     RouterLink,
     RouterLinkActive,
     RouterOutlet,
+    LogoComponent,
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
@@ -37,6 +38,28 @@ export class App {
   readonly navigation = computed<NavigationItem[]>(() => {
     const role = this.authService.currentUser()?.role;
     return this.navigationForRole(role);
+  });
+  /** Persistent sidebar at 960px and wider; an overlay drawer below that. */
+  private readonly breakpoints = inject(BreakpointObserver);
+  // Seed with the current match so the first render already uses the right
+  // sidenav mode; otherwise the content margin is computed for 'over' mode.
+  readonly isDesktop = toSignal(
+    this.breakpoints.observe('(min-width: 960px)').pipe(map((state) => state.matches)),
+    { initialValue: this.breakpoints.isMatched('(min-width: 960px)') },
+  );
+  readonly initials = computed(() => {
+    const name = this.authService.currentUser()?.name ?? '';
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    return ((parts[0]?.[0] ?? '') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase() || '?';
+  });
+  readonly roleLabel = computed(() => {
+    switch (this.authService.currentUser()?.role) {
+      case 'APPLICANT': return 'Applicant';
+      case 'APPROVER': return 'Approver';
+      case 'ADMIN': return 'Administrator';
+      case 'DISPATCH_OFFICER': return 'Dispatch officer';
+      default: return '';
+    }
   });
   readonly homeRoute = computed(() => (
     this.authService.currentUser()?.role === 'ADMIN' ? '/admin' : '/dashboard'
@@ -57,7 +80,7 @@ export class App {
         ];
       case 'ADMIN':
         return [
-          { label: 'Dashboard', path: '/admin', icon: 'space_dashboard' },
+          { label: 'Reports', path: '/admin', icon: 'insights' },
           { label: 'Approval oversight', path: '/approvals', icon: 'admin_panel_settings' },
           { label: 'Dispatch oversight', path: '/dispatch', icon: 'local_shipping' },
           { label: 'Audit history', path: '/admin/audit', icon: 'history' },
@@ -69,6 +92,12 @@ export class App {
         ];
       default:
         return [];
+    }
+  }
+
+  closeOnMobile(sidenav: MatSidenav): void {
+    if (!this.isDesktop()) {
+      void sidenav.close();
     }
   }
 

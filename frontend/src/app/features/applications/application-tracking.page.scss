@@ -1,14 +1,26 @@
-.page { max-width: 56rem; margin: 0 auto; display: grid; gap: 1rem; }
-.heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
-.heading h1 { margin: .25rem 0; }
-.heading p:not(.eyebrow) { margin: 0; color: var(--mat-sys-on-surface-variant); }
-.eyebrow { margin: 0; color: var(--mat-sys-primary); font-size: .78rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
-.timeline { display: grid; gap: 0; list-style: none; margin: 0; padding: 1rem 0; }
-.timeline li { display: grid; grid-template-columns: 2rem 1fr; gap: .75rem; min-height: 5rem; position: relative; }
-.timeline li:not(:last-child)::before { content: ''; position: absolute; top: 2rem; bottom: 0; left: .95rem; border-left: 2px solid var(--mat-sys-outline-variant); }
-.marker { z-index: 1; display: grid; width: 2rem; height: 2rem; place-items: center; border-radius: 50%; background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); }
-.marker mat-icon { font-size: 1rem; width: 1rem; height: 1rem; }
-.timeline strong, .timeline time { display: block; text-transform: capitalize; }
-.timeline time, .timeline p { color: var(--mat-sys-on-surface-variant); font-size: .9rem; }
-.timeline p { margin: .25rem 0; }
-@media (max-width: 600px) { .heading { align-items: flex-start; flex-direction: column; } }
+.back-link { justify-self: start; }
+.timeline { display: grid; margin: 0; padding: 1rem 0 0; list-style: none; }
+.timeline li { position: relative; display: grid; grid-template-columns: 2rem 1fr; gap: 1rem; min-height: 4.5rem; }
+.timeline li:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  top: 2.25rem;
+  bottom: .25rem;
+  left: calc(1rem - 1px);
+  border-left: 2px solid var(--app-border);
+}
+.marker {
+  z-index: 1;
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--app-info-bg);
+  color: var(--app-info-fg);
+}
+.timeline li:last-child .marker { background: var(--app-brand-gradient); color: #fff; box-shadow: 0 0 0 4px var(--app-info-bg); }
+.marker mat-icon { width: 1rem; height: 1rem; font-size: 1rem; }
+.timeline strong { display: block; font-weight: 650; text-transform: capitalize; }
+.timeline time, .timeline p { color: var(--app-text-muted); font-size: .875rem; }
+.timeline p { margin: .3rem 0 1rem; }

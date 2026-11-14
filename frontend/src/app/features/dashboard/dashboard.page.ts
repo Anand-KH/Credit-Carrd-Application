@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
-import { DatePipe, DecimalPipe, NgTemplateOutlet } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -13,6 +13,7 @@ import { ApprovalApplication } from '../../core/approvals/approval.models';
 import { DispatchService } from '../../core/dispatch/dispatch.service';
 import { CardDispatch } from '../../core/dispatch/dispatch.models';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
+import { ErrorMessageComponent } from '../../shared/ui/error-message.component';
 import { LoadingIndicatorComponent } from '../../shared/ui/loading-indicator.component';
 import { StatusChipComponent } from '../../shared/ui/status-chip.component';
 
@@ -21,12 +22,12 @@ import { StatusChipComponent } from '../../shared/ui/status-chip.component';
   imports: [
     DatePipe,
     DecimalPipe,
-    NgTemplateOutlet,
     MatButtonModule,
     MatCardModule,
     MatIconModule,
     RouterLink,
     EmptyStateComponent,
+    ErrorMessageComponent,
     LoadingIndicatorComponent,
     StatusChipComponent,
   ],
@@ -47,6 +48,7 @@ export class DashboardPage implements OnInit {
   readonly totalReviewable = signal(0);
   readonly loading = signal(true);
   readonly errorMessage = signal('');
+  readonly firstName = computed(() => this.authService.currentUser()?.name.trim().split(' ')[0] ?? '');
 
   ngOnInit(): void {
     const role = this.authService.currentUser()?.role;

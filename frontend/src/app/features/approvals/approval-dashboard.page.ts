@@ -4,6 +4,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { RouterLink } from '@angular/router';
@@ -17,7 +18,7 @@ import { StatusChipComponent } from '../../shared/ui/status-chip.component';
 
 @Component({
   selector: 'app-approval-dashboard-page',
-  imports: [DatePipe, DecimalPipe, MatButtonModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule, RouterLink, EmptyStateComponent, LoadingIndicatorComponent, StatusChipComponent],
+  imports: [DatePipe, DecimalPipe, MatButtonModule, MatDialogModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, RouterLink, EmptyStateComponent, LoadingIndicatorComponent, StatusChipComponent],
   templateUrl: './approval-dashboard.page.html',
   styleUrl: './approval-dashboard.page.scss',
 })
@@ -55,14 +56,18 @@ export class ApprovalDashboardPage implements OnInit {
   }
 
   decide(application: ApprovalApplication, decision: 'approved' | 'rejected'): void {
+    const needsConfirmation = application.eligibilityResult?.creditLimitReview === 'confirmation_required';
     const dialogRef = this.dialog.open(ApprovalDecisionDialogComponent, {
-      data: { decision },
+      data: {
+        decision,
+        ...(needsConfirmation ? { creditLimitToConfirm: application.creditLimitDecision ?? null } : {}),
+      },
       width: 'min(32rem, calc(100vw - 2rem))',
     });
-    dialogRef.afterClosed().subscribe((result: { reason: string; creditLimit: number } | undefined) => {
+    dialogRef.afterClosed().subscribe((result: { reason: string; creditLimit: number; confirmCreditLimit: boolean } | undefined) => {
       if (!result) return;
       this.loading.set(true);
-      this.service.decide(application.applicationNumber, decision, result.reason).subscribe({
+      this.service.decide(application.applicationNumber, decision, result.reason, result.confirmCreditLimit).subscribe({
         next: () => this.load(),
         error: (error: unknown) => {
           this.errorMessage.set(error instanceof HttpErrorResponse ? error.error?.error?.message ?? 'Unable to record decision.' : 'Unable to record decision.');

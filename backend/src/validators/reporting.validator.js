@@ -7,6 +7,7 @@ const statuses = new Set([
   'approved',
   'rejected',
   'manual_review',
+  'pending_admin_approval',
   'dispatched',
 ]);
 

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createApp } from '../src/app.js';
 import { errorHandler } from '../src/middleware/error-handler.js';
-import { createLogger } from '../src/utils/logger.js';
+import { createLogger, getErrorLogDetails } from '../src/utils/logger.js';
 
 describe('backend API foundation', () => {
   let server;
@@ -193,5 +193,33 @@ describe('backend API foundation', () => {
     expect(output.log).toHaveBeenCalledOnce();
     expect(output.log.mock.calls[0][0]).not.toContain('Fictional Applicant');
     expect(output.log.mock.calls[0][0]).not.toContain('not-a-real-pan');
+  });
+
+  it('logs sanitized startup errors and nested database causes', () => {
+    const output = { log: vi.fn() };
+    const logger = createLogger(output);
+    const error = new Error('Could not connect to MongoDB');
+    // Built at runtime so no credential-shaped literal sits in the source.
+    const connectionString = `mongodb+srv://${['user', 'password'].join(':')}@cluster.example.mongodb.net`;
+    error.reason = {
+      servers: new Map([[
+        'cluster.example.mongodb.net',
+        { error: new Error(`TLS failed for ${connectionString}`) },
+      ]]),
+    };
+
+    logger.error('server.startup_failed', {
+      errorName: error.name,
+      ...getErrorLogDetails(error),
+      code: 'STARTUP_FAILED',
+    });
+
+    const loggedError = JSON.parse(output.log.mock.calls[0][0]);
+    expect(loggedError).toMatchObject({
+      errorMessage: 'Could not connect to MongoDB',
+      causes: ['TLS failed for mongodb+srv://[redacted]@cluster.example.mongodb.net'],
+      code: 'STARTUP_FAILED',
+    });
+    expect(output.log.mock.calls[0][0]).not.toContain('password');
   });
 });

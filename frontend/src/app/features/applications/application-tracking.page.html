@@ -1,13 +1,14 @@
-<section class="page">
-  <a mat-button routerLink="/applications"><mat-icon>arrow_back</mat-icon> Back to applications</a>
+<section class="page page--narrow">
+  <a mat-button class="back-link" routerLink="/applications"><mat-icon>arrow_back</mat-icon> Back to applications</a>
   @if (loading()) {
     <app-loading-indicator label="Loading application status..." />
   } @else if (errorMessage()) {
+    <p class="alert alert--error" role="alert">{{ errorMessage() }}</p>
   } @else if (tracking(); as item) {
-    <div class="heading">
+    <header class="page-header">
       <div><p class="eyebrow">Application tracking</p><h1>{{ item.applicationNumber }}</h1><p>Submitted {{ item.applicationDate | date:'mediumDate' }}</p></div>
       <app-status-chip [status]="item.status" />
-    </div>
+    </header>
     <mat-card>
       <mat-card-header><mat-card-title>Status timeline</mat-card-title></mat-card-header>
       <mat-card-content>

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
@@ -182,7 +182,8 @@ describe('authentication API', () => {
     await expect(inactiveResponse.json()).resolves.toMatchObject({
       error: { code: 'ACCOUNT_INACTIVE' },
     });
-  });
+    // Five real cost-12 bcrypt operations; allow headroom on slow or busy machines.
+  }, 15_000);
 
   it('returns the authenticated user and denies forbidden roles', async () => {
     const baseUrl = await startServer();

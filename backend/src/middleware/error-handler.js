@@ -1,3 +1,5 @@
+import { getErrorLocation } from '../utils/logger.js';
+
 export function errorHandler(logger) {
   return (error, request, response, next) => {
     if (response.headersSent) {
@@ -44,6 +46,9 @@ export function errorHandler(logger) {
       status,
       code,
       errorName: error.name,
+      // Error messages can contain applicant data, so unexpected failures log only
+      // the source location of the throw, which is enough to start debugging.
+      ...(status >= 500 ? { errorLocation: getErrorLocation(error) } : {}),
     });
 
     response.status(status).json({

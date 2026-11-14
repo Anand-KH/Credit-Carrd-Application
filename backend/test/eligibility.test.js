@@ -12,14 +12,21 @@ function fixedCreditScoreProvider(score) {
   return { getCreditScore: async () => ({ score, provider: 'mock' }) };
 }
 
+function matchesEligibilityQuery(application, query) {
+  if (!query.status.$in.includes(application.status)) return false;
+  return query.$or.some((clause) => (
+    clause.status
+      ? clause.status.$in.includes(application.status)
+      : application.applicationDate >= clause.applicationDate.$gte
+  ));
+}
+
 function applicationModelWith(recentApplication = null) {
   return {
     findOne: (query) => ({
       sort: () => ({
         session: async () => (
-          recentApplication
-          && recentApplication.applicationDate >= query.applicationDate.$gte
-          && query.status.$in.includes(recentApplication.status)
+          recentApplication && matchesEligibilityQuery(recentApplication, query)
             ? recentApplication
             : null
         ),
@@ -64,6 +71,40 @@ describe('eligibility and credit-decision services', () => {
       dateOfBirth: new Date('1990-01-01T00:00:00.000Z'),
       annualIncome: 200000,
     })).rejects.toMatchObject({ code: 'SIX_MONTH_RESTRICTION' });
+  });
+
+  it('treats a dispatched application inside the window as a six-month restriction', async () => {
+    const service = createEligibilityService({
+      applicationModel: applicationModelWith({
+        applicationDate: subtractMonths(fixedNow, 1),
+        status: 'dispatched',
+      }),
+      creditScoreProvider: fixedCreditScoreProvider(801),
+      now: () => fixedNow,
+    });
+
+    await expect(service.evaluate({
+      applicantId,
+      dateOfBirth: new Date('1990-01-01T00:00:00.000Z'),
+      annualIncome: 200000,
+    })).rejects.toMatchObject({ code: 'SIX_MONTH_RESTRICTION' });
+  });
+
+  it('blocks a new submission while another application is still open', async () => {
+    const service = createEligibilityService({
+      applicationModel: applicationModelWith({
+        applicationDate: subtractMonths(fixedNow, 12),
+        status: 'manual_review',
+      }),
+      creditScoreProvider: fixedCreditScoreProvider(801),
+      now: () => fixedNow,
+    });
+
+    await expect(service.evaluate({
+      applicantId,
+      dateOfBirth: new Date('1990-01-01T00:00:00.000Z'),
+      annualIncome: 200000,
+    })).rejects.toMatchObject({ code: 'APPLICATION_IN_PROGRESS' });
   });
 
   it('allows an application before the six-month cutoff', async () => {

@@ -3,7 +3,6 @@ import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { RouterLink } from '@angular/router';
@@ -11,10 +10,11 @@ import { ReportingService } from '../../core/reporting/reporting.service';
 import { AuditEntry } from '../../core/reporting/reporting.models';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
 import { LoadingIndicatorComponent } from '../../shared/ui/loading-indicator.component';
+import { StatusChipComponent } from '../../shared/ui/status-chip.component';
 
 @Component({
   selector: 'app-audit-history-page',
-  imports: [DatePipe, ReactiveFormsModule, MatButtonModule, MatCardModule, MatFormFieldModule, MatInputModule, RouterLink, EmptyStateComponent, LoadingIndicatorComponent],
+  imports: [DatePipe, ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatInputModule, RouterLink, EmptyStateComponent, LoadingIndicatorComponent, StatusChipComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './audit-history.page.html',
   styleUrl: './audit-history.page.scss',

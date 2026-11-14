@@ -1,16 +1,66 @@
-<section class="page">
-  <a mat-button routerLink="/approvals">Back to queue</a>
-  @if (errorMessage()) { <p class="error">{{ errorMessage() }}</p> }
+<section class="page page--narrow">
+  <a mat-button class="back-link" routerLink="/approvals"><mat-icon>arrow_back</mat-icon> Back to queue</a>
+
+  @if (errorMessage()) {
+    <p class="alert alert--error" role="alert">{{ errorMessage() }}</p>
+  }
+
   @if (application(); as item) {
-    <h1>{{ item.applicationNumber }}</h1>
-    <dl>
-      <dt>Status</dt><dd>{{ item.status }}</dd>
-      <dt>Application date</dt><dd>{{ item.applicationDate | date:'medium' }}</dd>
-      <dt>Annual income</dt><dd>INR {{ item.income | number }}</dd>
-      <dt>Credit score</dt><dd>{{ item.creditScoreResult ?? 'Not available' }}</dd>
-      <dt>Credit limit</dt><dd>{{ item.creditLimitDecision ? ('INR ' + (item.creditLimitDecision | number)) : 'Manual review required' }}</dd>
-      <dt>Age eligible</dt><dd>{{ item.eligibilityResult?.ageQualified ? 'Yes' : 'No' }}</dd>
-      <dt>Score eligible</dt><dd>{{ item.eligibilityResult?.scoreQualified ? 'Yes' : 'No' }}</dd>
-    </dl>
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">Application review</p>
+        <h1>{{ item.applicationNumber }}</h1>
+        <p>Submitted {{ item.applicationDate | date:'medium' }}</p>
+      </div>
+      <app-status-chip [status]="item.status" />
+    </header>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <span class="stat-card__icon" aria-hidden="true"><mat-icon>speed</mat-icon></span>
+        <span class="stat-card__label">Credit score</span>
+        <span class="stat-card__value">{{ item.creditScoreResult ?? 'n/a' }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__icon" aria-hidden="true"><mat-icon>payments</mat-icon></span>
+        <span class="stat-card__label">Annual income</span>
+        <span class="stat-card__value">₹{{ item.income | number }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__icon" aria-hidden="true"><mat-icon>credit_card</mat-icon></span>
+        <span class="stat-card__label">Credit limit</span>
+        <span class="stat-card__value">{{ item.creditLimitDecision ? ('₹' + (item.creditLimitDecision | number)) : 'Pending' }}</span>
+      </div>
+    </div>
+
+    <div class="surface">
+      <h2 class="section-title">Eligibility checks</h2>
+      <ul class="checks">
+        <li [class.checks--pass]="item.eligibilityResult?.ageQualified">
+          <mat-icon aria-hidden="true">{{ item.eligibilityResult?.ageQualified ? 'check_circle' : 'cancel' }}</mat-icon>
+          <span>Applicant is older than 18</span>
+          <strong>{{ item.eligibilityResult?.ageQualified ? 'Pass' : 'Fail' }}</strong>
+        </li>
+        <li [class.checks--pass]="item.eligibilityResult?.scoreQualifies">
+          <mat-icon aria-hidden="true">{{ item.eligibilityResult?.scoreQualifies ? 'check_circle' : 'cancel' }}</mat-icon>
+          <span>Credit score above {{ item.eligibilityResult?.scoreThreshold ?? 800 }}</span>
+          <strong>{{ item.eligibilityResult?.scoreQualifies ? 'Pass' : 'Fail' }}</strong>
+        </li>
+        @if (item.eligibilityResult?.manualReviewRequired) {
+          <li class="checks--warn">
+            <mat-icon aria-hidden="true">rule</mat-icon>
+            <span>Income above INR 500,000: manual credit-limit review</span>
+            <strong>Required</strong>
+          </li>
+        }
+        @if (item.eligibilityResult?.creditLimitReview === 'confirmation_required') {
+          <li class="checks--warn">
+            <mat-icon aria-hidden="true">warning</mat-icon>
+            <span>Unusually high limit for this income band</span>
+            <strong>Confirm on approval</strong>
+          </li>
+        }
+      </ul>
+    </div>
   }
 </section>

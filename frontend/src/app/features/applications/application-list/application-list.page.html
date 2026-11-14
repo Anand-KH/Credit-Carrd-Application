@@ -1,28 +1,33 @@
-<section class="list-card" aria-labelledby="applications-title">
-  <div class="list-header">
+<section class="page page--narrow" aria-labelledby="applications-title">
+  <header class="page-header">
     <div>
       <p class="eyebrow">Applicant portal</p>
       <h1 id="applications-title">My applications</h1>
+      <p>Select an application to see its full status timeline.</p>
     </div>
-    <a mat-flat-button routerLink="/applications/new">New application</a>
-  </div>
+    <div class="page-header__actions">
+      <a mat-flat-button routerLink="/applications/new">New application</a>
+    </div>
+  </header>
+  <div class="surface">
 
   @if (errorMessage()) {
+    <p class="alert alert--error" role="alert">{{ errorMessage() }}</p>
   } @else if (loading()) {
     <app-loading-indicator label="Loading your applications..." />
   } @else if (applications().length === 0) {
     <app-empty-state icon="description" title="No applications yet" message="You have not submitted an application yet."><a mat-stroked-button routerLink="/applications/new">Start an application</a></app-empty-state>
   } @else {
-    <div class="application-list">
+    <div class="list">
       @for (application of applications(); track application.applicationNumber) {
-        <article class="application-row">
-          <div>
-            <a [routerLink]="['/applications', application.applicationNumber, 'status']"><strong>{{ application.applicationNumber }}</strong></a>
-            <span>Submitted {{ application.applicationDate | date: 'mediumDate' }}</span>
+        <article class="list-row">
+          <div class="list-row__main">
+            <a [routerLink]="['/applications', application.applicationNumber, 'status']">{{ application.applicationNumber }}</a>
+            <small>Submitted {{ application.applicationDate | date: 'mediumDate' }}</small>
           </div>
-          <div class="row-meta">
+          <div class="list-row__aside">
+            <span class="list-row__meta">INR {{ application.income | number }}</span>
             <app-status-chip [status]="application.status" />
-            <span>INR {{ application.income | number }}</span>
           </div>
         </article>
       }
@@ -33,4 +38,5 @@
       <button mat-stroked-button type="button" (click)="nextPage()" [disabled]="page() >= totalPages()">Next</button>
     </div>
   }
+  </div>
 </section>

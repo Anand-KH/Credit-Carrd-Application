@@ -1,5 +1,7 @@
 @if (submittedApplication(); as application) {
-  <section class="success-card" aria-labelledby="success-title">
+  <section class="page page--form">
+  <div class="surface success-card" aria-labelledby="success-title">
+    <span class="success-icon" aria-hidden="true"><mat-icon>check</mat-icon></span>
     <p class="eyebrow">Application received</p>
     <h1 id="success-title">Your application was submitted</h1>
     <p>Keep this application number for your records:</p>
@@ -8,19 +10,25 @@
       <a mat-stroked-button routerLink="/applications">View my applications</a>
       <a mat-flat-button routerLink="/dashboard">Return to dashboard</a>
     </div>
+  </div>
   </section>
 } @else {
-  <section class="form-card" aria-labelledby="application-title">
-    <p class="eyebrow">Applicant portal</p>
-    <h1 id="application-title">Apply for a credit card</h1>
-    <p class="intro">Use fictional test data only. Your application will start in submitted status.</p>
+  <section class="page page--form" aria-labelledby="application-title">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">New application</p>
+        <h1 id="application-title">Apply for a credit card</h1>
+        <p>Use fictional test data only. Eligibility is checked as soon as you submit.</p>
+      </div>
+    </header>
+    <div class="surface">
 
     @if (errorMessage()) {
-      <p class="form-error" role="alert">{{ errorMessage() }}</p>
+      <p class="alert alert--error" role="alert">{{ errorMessage() }}</p>
     }
 
-    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-      <h2>Applicant details</h2>
+    <form class="form-grid" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <h2 class="section-title"><span class="step">1</span> Personal details</h2>
       <div class="two-column">
         <div class="field-group">
           <mat-form-field appearance="outline">
@@ -71,7 +79,7 @@
       </div>
 
       <div formGroupName="address">
-        <h2>Address</h2>
+        <h2 class="section-title"><span class="step">2</span> Address</h2>
         <div class="field-group">
           <mat-form-field appearance="outline">
             <mat-label>Address line 1</mat-label>
@@ -122,7 +130,7 @@
         </div>
       </div>
 
-      <h2>Financial details</h2>
+      <h2 class="section-title"><span class="step">3</span> Employment &amp; identity</h2>
       <div class="two-column">
         <div class="field-group">
           <mat-form-field appearance="outline">
@@ -150,9 +158,13 @@
         </div>
       </div>
 
-      <button mat-flat-button type="submit" [disabled]="submitting()">
-        {{ submitting() ? 'Submitting…' : 'Submit application' }}
-      </button>
+      <div class="form-actions">
+        <a mat-button routerLink="/dashboard">Cancel</a>
+        <button mat-flat-button type="submit" [disabled]="submitting()">
+          {{ submitting() ? 'Submitting…' : 'Submit application' }}
+        </button>
+      </div>
     </form>
+    </div>
   </section>
 }

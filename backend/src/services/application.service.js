@@ -58,7 +58,7 @@ export function createApplicationService({
               $setOnInsert: { user: userId },
               $inc: { eligibilityLockVersion: 1 },
             },
-            { new: true, upsert: true, runValidators: true, session },
+            { returnDocument: 'after', upsert: true, runValidators: true, session },
           );
           const eligibility = await eligibilityService.evaluate({
             applicantId: applicant._id,

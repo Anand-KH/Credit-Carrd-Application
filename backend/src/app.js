@@ -21,7 +21,7 @@ import { createDispatchRouter } from './routes/dispatch.routes.js';
 import { createDispatchService } from './services/dispatch.service.js';
 import { createReportingRouter } from './routes/reporting.routes.js';
 import { createReportingService } from './services/reporting.service.js';
-import { createRateLimiter, securityHeaders } from './middleware/security.js';
+import { createRateLimiter, createSecurityHeaders, defaultRateLimits } from './middleware/security.js';
 
 export function createApp({
   config = loadConfig(),
@@ -33,7 +33,13 @@ export function createApp({
   approvalService,
   dispatchService,
   reportingService,
+  rateLimits = {},
 } = {}) {
+  const limits = {
+    api: { ...defaultRateLimits.api, ...rateLimits.api },
+    auth: { ...defaultRateLimits.auth, ...rateLimits.auth },
+    loginFailures: { ...defaultRateLimits.loginFailures, ...rateLimits.loginFailures },
+  };
   const app = express();
   const configuredAuthService = authService ?? createAuthService({ userModel });
   const configuredEligibilityService = createEligibilityService({
@@ -43,21 +49,35 @@ export function createApp({
   const configuredApplicationService = applicationService ?? createApplicationService({
     eligibilityService: configuredEligibilityService,
   });
-  const configuredApprovalService = approvalService ?? createApprovalService();
+  const configuredApprovalService = approvalService ?? createApprovalService({
+    creditLimitRequiresConfirmation: config.creditLimit300kTo500kRequiresConfirmation,
+  });
   const configuredDispatchService = dispatchService ?? createDispatchService();
   const configuredReportingService = reportingService ?? createReportingService();
 
+  app.disable('x-powered-by');
+  if (config.trustProxy !== undefined && config.trustProxy !== false) {
+    app.set('trust proxy', config.trustProxy);
+  }
   app.use(requestContext);
-  app.use(securityHeaders);
+  app.use(createSecurityHeaders({ enableHsts: config.nodeEnv === 'production' }));
   app.use(requestLogger(logger));
   app.use(cors(config.allowedOrigins));
+  // Health checks are mounted before the general limiter so load-balancer
+  // probes never get throttled.
+  app.use('/api', createHealthRouter());
+  app.use('/api', createRateLimiter(limits.api));
   app.use(express.json({ limit: '10kb' }));
   app.use('/api', validateJsonBody);
-  app.use('/api', createHealthRouter());
-  app.use('/api/auth', createRateLimiter({ max: 30 }), createAuthRouter({
+  app.use('/api/auth', createRateLimiter(limits.auth), createAuthRouter({
     config,
     authService: configuredAuthService,
     userModel,
+    loginLimiter: createRateLimiter({
+      ...limits.loginFailures,
+      skipSuccessfulRequests: true,
+      message: 'Too many failed sign-in attempts. Please try again later.',
+    }),
   }));
   app.use('/api/applications', createApplicationRouter({
     config,

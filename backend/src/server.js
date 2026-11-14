@@ -1,7 +1,7 @@
 import { createApp } from './app.js';
 import { loadConfig } from './config/env.js';
 import { closeDatabase, connectDatabase } from './services/database.service.js';
-import { createLogger } from './utils/logger.js';
+import { createLogger, getErrorLogDetails } from './utils/logger.js';
 
 const config = loadConfig();
 const logger = createLogger();
@@ -46,6 +46,7 @@ try {
 } catch (error) {
   logger.error('server.startup_failed', {
     errorName: error.name,
+    ...getErrorLogDetails(error),
     code: 'STARTUP_FAILED',
   });
   try {

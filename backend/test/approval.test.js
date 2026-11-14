@@ -20,7 +20,12 @@ function tokenFor(role) {
   });
 }
 
-function createFixture({ status = 'submitted', score = 801, manualReviewRequired = false } = {}) {
+function createFixture({
+  status = 'submitted',
+  score = 801,
+  manualReviewRequired = false,
+  creditLimitReview = 'not_required',
+} = {}) {
   return {
     _id: new mongoose.Types.ObjectId(),
     applicationNumber: 'APP-TEST-1',
@@ -31,7 +36,7 @@ function createFixture({ status = 'submitted', score = 801, manualReviewRequired
     creditScoreResult: score,
     creditLimitDecision: manualReviewRequired ? null : 75000,
     creditDecision: null,
-    eligibilityResult: { manualReviewRequired },
+    eligibilityResult: { manualReviewRequired, creditLimitReview },
   };
 }
 
@@ -79,8 +84,9 @@ describe('approval workflow', () => {
     }),
   };
 
-  function service() {
+  function service(options = {}) {
     return createApprovalService({
+      ...options,
       applicationModel,
       statusHistoryModel: { create: async (records) => histories.push(records[0]) },
       auditLogModel: { create: async (records) => audits.push(records[0]) },
@@ -188,14 +194,58 @@ describe('approval workflow', () => {
     current = createFixture({ score: 800 });
     await expect(service().decide('APP-TEST-1', {
       userId: approverId.toString(),
+      role: 'APPROVER',
     }, { decision: 'approved', reason: 'Attempt to approve score 800.' }))
       .rejects.toMatchObject({ code: 'CREDIT_SCORE_NOT_ELIGIBLE' });
 
     current = createFixture({ status: 'manual_review', manualReviewRequired: true });
     await expect(service().decide('APP-TEST-1', {
       userId: approverId.toString(),
+      role: 'APPROVER',
     }, { decision: 'approved', reason: 'Attempt to skip manual limit review.' }))
       .rejects.toMatchObject({ code: 'MANUAL_REVIEW_REQUIRED' });
+  });
+
+  it('reports a status conflict before score rules for already decided applications', async () => {
+    current = createFixture({ status: 'approved', score: 700 });
+    await expect(service().decide('APP-TEST-1', {
+      userId: approverId.toString(),
+      role: 'APPROVER',
+    }, { decision: 'approved', reason: 'Repeat approval attempt.' }))
+      .rejects.toMatchObject({ code: 'INVALID_STATUS_TRANSITION' });
+  });
+
+  it('denies decisions from actors without a recognised role', async () => {
+    current = createFixture();
+    await expect(service().decide('APP-TEST-1', {
+      userId: approverId.toString(),
+    }, { decision: 'rejected', reason: 'Actor role is missing.' }))
+      .rejects.toMatchObject({ code: 'INVALID_STATUS_TRANSITION' });
+  });
+
+  it('requires explicit confirmation for flagged credit limits', async () => {
+    const actor = { userId: approverId.toString(), role: 'APPROVER' };
+    current = createFixture({ creditLimitReview: 'confirmation_required' });
+    await expect(service().decide('APP-TEST-1', actor, {
+      decision: 'approved',
+      reason: 'Approving without confirming the limit.',
+    })).rejects.toMatchObject({ code: 'CREDIT_LIMIT_CONFIRMATION_REQUIRED' });
+
+    await expect(service().decide('APP-TEST-1', actor, {
+      decision: 'approved',
+      reason: 'Limit confirmed after review.',
+      confirmCreditLimit: true,
+    })).resolves.toMatchObject({ status: 'approved' });
+    expect(audits[0].metadata).toMatchObject({ creditLimitConfirmed: true });
+  });
+
+  it('skips the confirmation step when it is disabled in configuration', async () => {
+    current = createFixture({ creditLimitReview: 'confirmation_required' });
+    await expect(service({ creditLimitRequiresConfirmation: false }).decide('APP-TEST-1', {
+      userId: approverId.toString(),
+      role: 'APPROVER',
+    }, { decision: 'approved', reason: 'Confirmation disabled by configuration.' }))
+      .resolves.toMatchObject({ status: 'approved' });
   });
 
   it('requires a decision reason', async () => {

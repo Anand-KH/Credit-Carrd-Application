@@ -4,8 +4,10 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { AuthService } from '../../../core/auth/auth.service';
+import { LogoComponent } from '../../../shared/ui/logo.component';
 import { EMAIL_PATTERN } from '../../../core/auth/validation-patterns';
 
 @Component({
@@ -13,9 +15,11 @@ import { EMAIL_PATTERN } from '../../../core/auth/validation-patterns';
   imports: [
     MatButtonModule,
     MatFormFieldModule,
+    MatIconModule,
     MatInputModule,
     ReactiveFormsModule,
     RouterLink,
+    LogoComponent,
   ],
   templateUrl: './login.page.html',
   styleUrl: '../auth.page.scss',
@@ -27,6 +31,7 @@ export class LoginPage {
   private readonly activatedRoute = inject(ActivatedRoute);
 
   readonly submitting = signal(false);
+  readonly showPassword = signal(false);
   readonly errorMessage = signal('');
   readonly registrationMessage = signal('');
   readonly form = this.formBuilder.nonNullable.group({
@@ -35,8 +40,11 @@ export class LoginPage {
   });
 
   constructor() {
-    if (this.activatedRoute.snapshot.queryParamMap.get('registered') === 'true') {
+    const query = this.activatedRoute.snapshot.queryParamMap;
+    if (query.get('registered') === 'true') {
       this.registrationMessage.set('Account created successfully. Please sign in.');
+    } else if (query.get('reason') === 'session-expired') {
+      this.registrationMessage.set('Your session has expired. Please sign in again.');
     }
   }
 

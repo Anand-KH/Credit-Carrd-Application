@@ -1,62 +1,164 @@
 @if (loading()) {
   <app-loading-indicator label="Loading dashboard..." />
 } @else if (errorMessage()) {
+  <div class="page"><app-error-message [message]="errorMessage()" (retry)="retry()" /></div>
 } @else {
   @switch (authService.currentUser()?.role) {
     @case ('APPLICANT') {
-      <section class="dashboard">
-        <div class="page-heading">
-          <div><p class="eyebrow">Applicant dashboard</p><h1>Welcome back, {{ authService.currentUser()?.name }}</h1><p>Track your credit-card applications and submit a new one.</p></div>
-          <a mat-flat-button color="primary" routerLink="/applications/new"><mat-icon>add</mat-icon> New application</a>
+      <section class="page">
+        <header class="page-header">
+          <div>
+            <p class="eyebrow">Applicant dashboard</p>
+            <h1>Welcome back, {{ firstName() }}</h1>
+            <p>Track your credit-card applications or start a new one.</p>
+          </div>
+          <div class="page-header__actions">
+            <a mat-flat-button routerLink="/applications/new"><mat-icon>add</mat-icon> New application</a>
+          </div>
+        </header>
+
+        <div class="hero-banner">
+          <div>
+            <h2>Apply in under five minutes</h2>
+            <p>Eligibility is checked instantly, and you can follow every step until your card arrives.</p>
+          </div>
+          <a mat-stroked-button routerLink="/applications">View my applications</a>
         </div>
-        <div class="metric-grid">
-          <mat-card><mat-card-content><mat-icon aria-hidden="true">description</mat-icon><span>My applications</span><strong>{{ totalApplications() }}</strong></mat-card-content></mat-card>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <span class="stat-card__icon" aria-hidden="true"><mat-icon>description</mat-icon></span>
+            <span class="stat-card__label">My applications</span>
+            <span class="stat-card__value">{{ totalApplications() }}</span>
+          </div>
         </div>
+
         @if (applicantApplications().length === 0) {
-          <mat-card><app-empty-state icon="description" title="No applications yet" message="Start a fictional application when you are ready."><a mat-stroked-button routerLink="/applications/new">Start application</a></app-empty-state></mat-card>
+          <mat-card>
+            <app-empty-state icon="credit_card" title="No applications yet" message="Start your first application when you are ready. Use fictional test data only.">
+              <a mat-flat-button routerLink="/applications/new">Start application</a>
+            </app-empty-state>
+          </mat-card>
         } @else {
           <mat-card>
-            <mat-card-header><mat-card-title>Recent applications</mat-card-title><a mat-button routerLink="/applications">View all</a></mat-card-header>
-            <mat-card-content><div class="application-list">
-              @for (application of applicantApplications(); track application.applicationNumber) {
-                <div class="application-row"><div><strong>{{ application.applicationNumber }}</strong><small>{{ application.applicationDate | date:'mediumDate' }} · INR {{ application.income | number }}</small></div><app-status-chip [status]="application.status" /></div>
-              }
-            </div></mat-card-content>
+            <mat-card-header class="card-header">
+              <mat-card-title>Recent applications</mat-card-title>
+              <a mat-button routerLink="/applications">View all</a>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="list">
+                @for (application of applicantApplications(); track application.applicationNumber) {
+                  <div class="list-row">
+                    <div class="list-row__main">
+                      <a [routerLink]="['/applications', application.applicationNumber, 'status']">{{ application.applicationNumber }}</a>
+                      <small>{{ application.applicationDate | date:'mediumDate' }} · INR {{ application.income | number }}</small>
+                    </div>
+                    <app-status-chip [status]="application.status" />
+                  </div>
+                }
+              </div>
+            </mat-card-content>
           </mat-card>
         }
       </section>
     }
     @case ('APPROVER') {
-      <ng-container *ngTemplateOutlet="staffDashboard; context: { title: 'Approver dashboard', eyebrow: 'Review operations', description: 'Review applications that require an approval decision.' }" />
+      <section class="page">
+        <header class="page-header">
+          <div>
+            <p class="eyebrow">Review operations</p>
+            <h1>Welcome back, {{ firstName() }}</h1>
+            <p>Applications waiting for an approval decision.</p>
+          </div>
+          <div class="page-header__actions">
+            <a mat-flat-button routerLink="/approvals"><mat-icon>fact_check</mat-icon> Open queue</a>
+          </div>
+        </header>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <span class="stat-card__icon" aria-hidden="true"><mat-icon>pending_actions</mat-icon></span>
+            <span class="stat-card__label">Awaiting review</span>
+            <span class="stat-card__value">{{ totalReviewable() }}</span>
+          </div>
+        </div>
+        @if (reviewQueue().length === 0) {
+          <mat-card><app-empty-state icon="task_alt" title="Queue is clear" message="No applications currently need a decision." /></mat-card>
+        } @else {
+          <mat-card>
+            <mat-card-header class="card-header">
+              <mat-card-title>Next in queue</mat-card-title>
+              <a mat-button routerLink="/approvals">View queue</a>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="list">
+                @for (application of reviewQueue(); track application.applicationNumber) {
+                  <div class="list-row">
+                    <div class="list-row__main">
+                      <a [routerLink]="['/approvals', application.applicationNumber]">{{ application.applicationNumber }}</a>
+                      <small>{{ application.applicationDate | date:'mediumDate' }} · Score {{ application.creditScoreResult ?? 'n/a' }}</small>
+                    </div>
+                    <app-status-chip [status]="application.status" />
+                  </div>
+                }
+              </div>
+            </mat-card-content>
+          </mat-card>
+        }
+      </section>
     }
     @case ('ADMIN') {
-      <section class="dashboard">
-        <div class="page-heading"><div><p class="eyebrow">Administrator dashboard</p><h1>Operational oversight</h1><p>Review application reports and audit history.</p></div><a mat-flat-button color="primary" routerLink="/admin"><mat-icon>admin_panel_settings</mat-icon> Open reports</a></div>
-        <mat-card><app-empty-state icon="admin_panel_settings" title="Administrator tools" message="Use the reports dashboard to view application counts, filtered applications, and audit history."><a mat-stroked-button routerLink="/admin">Open administrator dashboard</a></app-empty-state></mat-card>
+      <section class="page">
+        <header class="page-header">
+          <div>
+            <p class="eyebrow">Administrator</p>
+            <h1>Operational oversight</h1>
+            <p>Application reports, approvals and audit history.</p>
+          </div>
+        </header>
+        <div class="quick-links">
+          <a class="quick-link" routerLink="/admin"><mat-icon aria-hidden="true">insights</mat-icon><strong>Reports</strong><span>Counts, filters and trends</span></a>
+          <a class="quick-link" routerLink="/approvals"><mat-icon aria-hidden="true">admin_panel_settings</mat-icon><strong>Approval oversight</strong><span>Final manual-review decisions</span></a>
+          <a class="quick-link" routerLink="/dispatch"><mat-icon aria-hidden="true">local_shipping</mat-icon><strong>Dispatch oversight</strong><span>Card delivery progress</span></a>
+          <a class="quick-link" routerLink="/admin/audit"><mat-icon aria-hidden="true">history</mat-icon><strong>Audit history</strong><span>Every recorded action</span></a>
+        </div>
       </section>
     }
     @case ('DISPATCH_OFFICER') {
-      <section class="dashboard">
-        <div class="page-heading"><div><p class="eyebrow">Dispatch dashboard</p><h1>Card dispatch operations</h1><p>Manage approved card deliveries.</p></div><a mat-flat-button color="primary" routerLink="/dispatch"><mat-icon>local_shipping</mat-icon> Open dispatch queue</a></div>
-        @if (dispatchQueue().length === 0) { <mat-card><app-empty-state icon="local_shipping" title="No dispatch records available" message="Approved applications will appear here when dispatch is created." /></mat-card> }
-        @else { <mat-card><mat-card-header><mat-card-title>Recent dispatches</mat-card-title><a mat-button routerLink="/dispatch">View queue</a></mat-card-header><mat-card-content><div class="application-list">@for (dispatch of dispatchQueue(); track dispatch.dispatchReference) { <div class="application-row"><div><strong>{{ dispatch.applicationNumber }}</strong><small>{{ dispatch.dispatchReference }} · {{ dispatch.dispatchDate | date:'mediumDate' }}</small></div><app-status-chip [status]="dispatch.dispatchStatus" /></div>}</div></mat-card-content></mat-card> }
+      <section class="page">
+        <header class="page-header">
+          <div>
+            <p class="eyebrow">Dispatch operations</p>
+            <h1>Welcome back, {{ firstName() }}</h1>
+            <p>Approved cards waiting for or moving through delivery.</p>
+          </div>
+          <div class="page-header__actions">
+            <a mat-flat-button routerLink="/dispatch"><mat-icon>local_shipping</mat-icon> Open dispatch queue</a>
+          </div>
+        </header>
+        @if (dispatchQueue().length === 0) {
+          <mat-card><app-empty-state icon="local_shipping" title="Nothing to dispatch" message="Approved applications will appear here." /></mat-card>
+        } @else {
+          <mat-card>
+            <mat-card-header class="card-header">
+              <mat-card-title>Recent dispatches</mat-card-title>
+              <a mat-button routerLink="/dispatch">View queue</a>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="list">
+                @for (dispatch of dispatchQueue(); track dispatch.applicationNumber) {
+                  <div class="list-row">
+                    <div class="list-row__main">
+                      <strong>{{ dispatch.applicationNumber }}</strong>
+                      <small>{{ dispatch.dispatchReference || 'Not yet created' }} · {{ dispatch.dispatchDate | date:'mediumDate' }}</small>
+                    </div>
+                    <app-status-chip [status]="dispatch.dispatchStatus" />
+                  </div>
+                }
+              </div>
+            </mat-card-content>
+          </mat-card>
+        }
       </section>
     }
   }
 }
-
-<ng-template #staffDashboard let-title="title" let-eyebrow="eyebrow" let-description="description">
-  <section class="dashboard">
-    <div class="page-heading"><div><p class="eyebrow">{{ eyebrow }}</p><h1>{{ title }}</h1><p>{{ description }}</p></div><a mat-flat-button color="primary" routerLink="/approvals"><mat-icon>fact_check</mat-icon> Open queue</a></div>
-    <div class="metric-grid"><mat-card><mat-card-content><mat-icon aria-hidden="true">pending_actions</mat-icon><span>Reviewable applications</span><strong>{{ totalReviewable() }}</strong></mat-card-content></mat-card></div>
-    @if (reviewQueue().length === 0) {
-      <mat-card><app-empty-state icon="task_alt" title="Queue is clear" message="The backend returned no applications requiring review." /></mat-card>
-    } @else {
-      <mat-card><mat-card-header><mat-card-title>Recent review queue</mat-card-title><a mat-button routerLink="/approvals">View queue</a></mat-card-header><mat-card-content><div class="application-list">
-        @for (application of reviewQueue(); track application.applicationNumber) {
-          <div class="application-row"><div><a [routerLink]="['/approvals', application.applicationNumber]"><strong>{{ application.applicationNumber }}</strong></a><small>{{ application.applicationDate | date:'mediumDate' }} · Score {{ application.creditScoreResult ?? 'Not available' }}</small></div><app-status-chip [status]="application.status" /></div>
-        }
-      </div></mat-card-content></mat-card>
-    }
-  </section>
-</ng-template>
